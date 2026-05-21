@@ -94,6 +94,36 @@ The official reference implementation (Docker container, Xvfb, real action
 handlers) lives at
 <https://github.com/anthropics/anthropic-quickstarts/tree/main/computer-use-demo>.
 
+## Related: computer-use-mcp (community MCP server)
+
+[`domdomegg/computer-use-mcp`](https://github.com/domdomegg/computer-use-mcp)
+wraps screenshot + nut.js-driven mouse/keyboard as an MCP server, so Claude
+Desktop, Claude Code, Cursor, and Cline can drive the host machine without you
+writing an agent loop.
+
+This repo's [`.mcp.json`](.mcp.json) registers it at project scope:
+
+```json
+{
+  "mcpServers": {
+    "computer-use": {
+      "command": "npx",
+      "args": ["-y", "computer-use-mcp"]
+    }
+  }
+}
+```
+
+When you next open this repo in Claude Code, it will prompt for approval before
+loading the server.
+
+**This is fundamentally different from the API tool above.** The Anthropic
+computer use tool expects you to provide a sandboxed environment; the MCP
+server drives *your real machine*. The author's own warning is to treat it
+"like giving a hyperactive toddler access" — use a sandboxed OS user, watch
+what it does, and don't leave it unattended on a machine with sensitive data
+or active sessions.
+
 ## Prompting tips from the docs
 
 - Keep tasks small and explicit.
