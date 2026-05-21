@@ -8,7 +8,6 @@ demonstrating how SHA-256 proof-of-work secures the blockchain.
 import struct
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from .sha256 import double_sha256, sha256
 
@@ -58,9 +57,7 @@ class Transaction:
 
     def __post_init__(self):
         if not self.tx_id:
-            self.tx_id = sha256(
-                f"{self.sender}{self.recipient}{self.amount}{time.time()}".encode()
-            )
+            self.tx_id = sha256(f"{self.sender}{self.recipient}{self.amount}{time.time()}".encode())
 
     def serialize(self) -> bytes:
         return f"{self.sender}:{self.recipient}:{self.amount}".encode()
@@ -71,7 +68,7 @@ class Block:
     """A full block containing a header and a list of transactions."""
 
     header: BlockHeader
-    transactions: List[Transaction] = field(default_factory=list)
+    transactions: list[Transaction] = field(default_factory=list)
 
     def compute_merkle_root(self) -> str:
         """Compute the Merkle root of the block's transactions."""
@@ -96,7 +93,7 @@ class Block:
         return self.compute_merkle_root() == self.header.merkle_root
 
 
-def mine_block(header: BlockHeader, max_nonce: int = 2**32) -> Optional[BlockHeader]:
+def mine_block(header: BlockHeader, max_nonce: int = 2**32) -> BlockHeader | None:
     """
     Attempt to find a nonce that makes the header hash meet difficulty.
 

@@ -6,11 +6,8 @@ via SHA-256 hashes and validates chain integrity.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from .block import Block, BlockHeader, Transaction, mine_block
-from .sha256 import sha256
-
 
 GENESIS_PREV_HASH = "0" * 64
 
@@ -19,7 +16,7 @@ GENESIS_PREV_HASH = "0" * 64
 class Blockchain:
     """A simplified blockchain with validation capabilities."""
 
-    chain: List[Block] = field(default_factory=list)
+    chain: list[Block] = field(default_factory=list)
     difficulty: int = 8  # number of leading zero bits
 
     def create_genesis_block(self) -> Block:
@@ -43,7 +40,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def add_block(self, transactions: List[Transaction]) -> Optional[Block]:
+    def add_block(self, transactions: list[Transaction]) -> Block | None:
         """
         Create, mine, and append a new block with the given transactions.
 
@@ -110,7 +107,7 @@ class Blockchain:
 
         return True
 
-    def get_block_by_index(self, index: int) -> Optional[Block]:
+    def get_block_by_index(self, index: int) -> Block | None:
         """Return a block by its index, or None if out of range."""
         if 0 <= index < len(self.chain):
             return self.chain[index]
@@ -120,7 +117,7 @@ class Blockchain:
         """Return the number of blocks in the chain."""
         return len(self.chain)
 
-    def get_latest_block(self) -> Optional[Block]:
+    def get_latest_block(self) -> Block | None:
         """Return the most recent block, or None if the chain is empty."""
         return self.chain[-1] if self.chain else None
 

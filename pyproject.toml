@@ -21,6 +21,7 @@ computer-use = [
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    "ruff>=0.6",
 ]
 
 [project.scripts]
@@ -30,3 +31,15 @@ computer-use-mcp-py = "src.mcp_servers.computer_use_server:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]  # line length is handled by `line-length` for autoformat only
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B"]  # allow asserts and looser style in tests
+

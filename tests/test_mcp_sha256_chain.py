@@ -11,6 +11,7 @@ import pytest
 pytest.importorskip("mcp")
 
 from src.mcp_servers import sha256_chain_server as server  # noqa: E402
+from src.mcp_servers.sha256_chain_server import TxInput  # noqa: E402
 
 
 def _call(tool_name: str, **kwargs):
@@ -68,15 +69,15 @@ def test_create_and_validate_chain():
     result = _call(
         "add_block",
         chain_id=chain_id,
-        txs=[{"sender": "alice", "recipient": "bob", "amount": 1.5}],
+        txs=[TxInput(sender="alice", recipient="bob", amount=1.5)],
     )
-    assert "hash" in result, result
-    assert result["index"] == 1
+    assert result.index == 1
+    assert result.hash
     assert _call("validate_blockchain", chain_id=chain_id) is True
 
     info = _call("get_chain_info", chain_id=chain_id)
-    assert info["length"] == 2
-    assert info["latest_hash"] == result["hash"]
+    assert info.length == 2
+    assert info.latest_hash == result.hash
 
 
 def test_compare_equal_chains():
@@ -89,6 +90,67 @@ def test_validate_unknown_chain_returns_false():
     assert _call("validate_blockchain", chain_id="does-not-exist") is False
 
 
+def test_get_block_and_list_transactions():
+    chain_id = _call("create_blockchain", difficulty=4)
+    _call(
+        "add_block",
+        chain_id=chain_id,
+        txs=[
+            TxInput(sender="alice", recipient="bob", amount=2.0),
+            TxInput(sender="bob", recipient="carol", amount=1.0),
+        ],
+    )
+
+    block = _call("get_block", chain_id=chain_id, index=1)
+    assert block.index == 1
+    assert block.prev_hash
+    assert len(block.transactions) == 2
+    assert block.transactions[0].sender == "alice"
+
+    txs = _call("list_transactions", chain_id=chain_id, block_index=1)
+    assert len(txs) == 2
+    assert all(tx.tx_id for tx in txs)
+
+
+def test_fork_chain_starts_equal_then_diverges():
+    a = _call("create_blockchain", difficulty=4)
+    _call("add_block", chain_id=a, txs=[TxInput(sender="x", recipient="y", amount=1.0)])
+
+    b = _call("fork_chain", chain_id=a)
+    assert isinstance(b, str)
+    assert _call("compare_blockchains", chain_a_id=a, chain_b_id=b) == "equal"
+
+    # Extend a so it's longer than b
+    _call("add_block", chain_id=a, txs=[TxInput(sender="x", recipient="y", amount=2.0)])
+    assert _call("compare_blockchains", chain_a_id=a, chain_b_id=b) == "A"
+
+
+def test_tamper_block_breaks_validation():
+    chain_id = _call("create_blockchain", difficulty=4)
+    _call(
+        "add_block",
+        chain_id=chain_id,
+        txs=[TxInput(sender="alice", recipient="bob", amount=1.0)],
+    )
+    assert _call("validate_blockchain", chain_id=chain_id) is True
+
+    result = _call(
+        "tamper_block",
+        chain_id=chain_id,
+        block_index=1,
+        tx_index=0,
+        new_recipient="attacker",
+    )
+    assert result["valid_before"] is True
+    assert result["valid_after"] is False
+    assert _call("validate_blockchain", chain_id=chain_id) is False
+
+
+def test_fork_chain_unknown_returns_error_dict():
+    result = _call("fork_chain", chain_id="nope")
+    assert isinstance(result, dict) and "error" in result
+
+
 def test_validate_header_round_trip():
     mined = _call(
         "mine_header",
@@ -99,13 +161,16 @@ def test_validate_header_round_trip():
         difficulty_target=4,
         max_nonce=2**16,
     )
-    assert "nonce" in mined, mined
-    assert _call(
-        "validate_header",
-        version=1,
-        prev_hash="0" * 64,
-        merkle_root="0" * 64,
-        timestamp=1700000000,
-        difficulty_target=4,
-        nonce=mined["nonce"],
-    ) is True
+    assert mined.nonce >= 0
+    assert (
+        _call(
+            "validate_header",
+            version=1,
+            prev_hash="0" * 64,
+            merkle_root="0" * 64,
+            timestamp=1700000000,
+            difficulty_target=4,
+            nonce=mined.nonce,
+        )
+        is True
+    )

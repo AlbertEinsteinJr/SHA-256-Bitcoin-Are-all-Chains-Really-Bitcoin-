@@ -20,10 +20,16 @@ Exposes this repo's SHA-256 / blockchain primitives as MCP tools.
 | `add_block(chain_id, txs)` | Mine and append a block. `txs` is a list of `{sender, recipient, amount}`. |
 | `validate_blockchain(chain_id)` | PoW + linkage + Merkle root checks across the whole chain. |
 | `get_chain_info(chain_id)` | `{length, difficulty, latest_hash}`. |
-| `compare_blockchains(a, b)` | `'A' | 'B' | 'equal'` per longest-valid-chain. |
+| `get_block(chain_id, index)` | Full block details (header fields + transactions). |
+| `list_transactions(chain_id, block_index)` | Transactions in a block, with `tx_id`. |
+| `compare_blockchains(a, b)` | `'A' \| 'B' \| 'equal'` per longest-valid-chain. |
+| `fork_chain(chain_id)` | Deep-copy a chain — useful to demonstrate the longest-valid-chain rule. |
+| `tamper_block(chain_id, block_index, tx_index, new_recipient)` | Demo: mutate a tx after mining, returns `{valid_before, valid_after, tampered_tx_id}`. |
 
-State is in-process: chains live in `_state.CHAINS` and disappear when the
-server restarts.
+All argument and return shapes use pydantic models, so MCP clients see
+rich JSON-schema tool definitions (descriptions, constraints, enums).
+State is in-process: chains live in `_state.CHAINS` and disappear when
+the server restarts.
 
 ## `computer-use`
 

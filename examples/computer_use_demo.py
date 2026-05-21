@@ -24,7 +24,6 @@ from typing import Any
 
 import anthropic
 
-
 MODEL = "claude-opus-4-7"
 BETA_HEADER = "computer-use-2025-11-24"
 DISPLAY_WIDTH_PX = 1024
@@ -133,8 +132,7 @@ def main() -> None:
         sys.exit("ANTHROPIC_API_KEY is not set")
 
     prompt = (
-        " ".join(sys.argv[1:])
-        or "Take a screenshot, then describe what you see in one sentence."
+        " ".join(sys.argv[1:]) or "Take a screenshot, then describe what you see in one sentence."
     )
 
     client = anthropic.Anthropic()
