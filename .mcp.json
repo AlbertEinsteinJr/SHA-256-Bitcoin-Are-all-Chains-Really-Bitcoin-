@@ -16,7 +16,7 @@
       "args": [
         "run",
         "--with",
-        ".[computer-use]",
+        ".[all]",
         "python",
         "-m",
         "src.mcp_servers.computer_use_server"

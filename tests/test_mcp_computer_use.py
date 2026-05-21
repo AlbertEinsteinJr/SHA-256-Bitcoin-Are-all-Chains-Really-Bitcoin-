@@ -56,6 +56,7 @@ if "mss" not in sys.modules:
 
     sys.modules["mss"] = types.SimpleNamespace(mss=lambda: _MSS())
 
+from src.mcp_servers import _input as input_mod  # noqa: E402
 from src.mcp_servers import computer_use_server as server  # noqa: E402
 
 
@@ -68,7 +69,7 @@ class _Call:
 
 @pytest.fixture
 def calls(monkeypatch):
-    """Per-test fresh recorder bound onto the server module's `pyautogui`."""
+    """Per-test fresh recorder bound onto the input module's `pyautogui`."""
     recorded: list[_Call] = []
 
     def record(name, returns=None):
@@ -92,13 +93,14 @@ def calls(monkeypatch):
         position=record("position", returns=lambda: types.SimpleNamespace(x=100, y=200)),
         size=record("size", returns=lambda: types.SimpleNamespace(width=1920, height=1080)),
     )
-    monkeypatch.setattr(server, "pyautogui", fake)
+    monkeypatch.setattr(input_mod, "pyautogui", fake)
     return recorded
 
 
 def _invoke(name, **kwargs):
-    fn = getattr(server, name)
-    return fn.fn(**kwargs) if hasattr(fn, "fn") else fn(**kwargs)
+    """Look up a tool in the FastMCP registry and call its underlying function."""
+    tool = server.mcp._tool_manager._tools[name]
+    return tool.fn(**kwargs)
 
 
 def test_left_click(calls):
@@ -178,12 +180,12 @@ def test_screenshot_returns_png_image_content():
     assert result.data
 
 
-def test_all_tools_registered_with_fastmcp():
+def test_input_group_tools_registered():
     import asyncio
 
     tools = asyncio.run(server.mcp.list_tools())
     names = {t.name for t in tools}
-    assert names == {
+    expected_input = {
         "screenshot",
         "left_click",
         "right_click",
@@ -196,3 +198,62 @@ def test_all_tools_registered_with_fastmcp():
         "cursor_position",
         "get_screen_size",
     }
+    assert expected_input <= names, f"missing: {expected_input - names}"
+
+
+def test_groups_loaded_status():
+    # _input, _macos, _shell, _recording must load with stdlib only.
+    # _browser/_vision are optional; status may be loaded or skipped.
+    status = server.SERVER_STATUS
+    for required in ("_input", "_macos", "_shell", "_recording"):
+        assert status[required] == "loaded", f"{required}: {status[required]}"
+    for optional in ("_browser", "_vision"):
+        assert status[optional] == "loaded" or status[optional].startswith("skipped:")
+
+
+def test_shell_run_command():
+    result = _invoke("run_command", command="echo hello-mcp")
+    assert result["ok"] is True
+    assert "hello-mcp" in result["stdout"]
+
+
+def test_shell_read_and_write_file(tmp_path):
+    p = tmp_path / "out.txt"
+    w = _invoke("write_file", path=str(p), content="hello", append=False, make_parents=False)
+    assert w["ok"] is True
+    r = _invoke("read_file", path=str(p), max_bytes=1_000_000)
+    assert r["ok"] is True
+    assert r["content"] == "hello"
+
+
+def test_shell_list_directory(tmp_path):
+    (tmp_path / "a.txt").write_text("x")
+    (tmp_path / "b.txt").write_text("y")
+    result = _invoke("list_directory", path=str(tmp_path), include_hidden=False)
+    assert result["ok"] is True
+    names = {e["name"] for e in result["entries"]}
+    assert names == {"a.txt", "b.txt"}
+
+
+def test_shell_list_processes():
+    result = _invoke("list_processes", filter_name="", limit=5)
+    assert result["ok"] is True
+    assert len(result["processes"]) >= 1
+
+
+def test_macos_tools_safe_on_non_macos():
+    # In CI / Linux containers IS_MACOS is False; tools should error out cleanly.
+    result = _invoke("clipboard_read")
+    # Either we're on macOS (clipboard text returned) or we got the macOS-only marker.
+    assert "text" in result or result.get("error") == "macOS only"
+
+
+def test_recording_lifecycle(tmp_path):
+    log = tmp_path / "rec.jsonl"
+    start = _invoke("start_recording", path=str(log))
+    assert start["ok"] is True
+    status = _invoke("recording_status")
+    assert status["recording"] is True
+    stop = _invoke("stop_recording")
+    assert stop["ok"] is True
+    assert log.exists()

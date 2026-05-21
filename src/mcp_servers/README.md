@@ -33,38 +33,99 @@ the server restarts.
 
 ## `computer-use`
 
-Pure-Python equivalent of [`domdomegg/computer-use-mcp`](https://github.com/domdomegg/computer-use-mcp).
-Uses `pyautogui` for input and `mss` for screenshots, so it runs anywhere
-pyautogui does (macOS, Windows, X11).
+The "ultimate" computer-use server: full desktop control, native macOS
+integration, shell + filesystem, headed Playwright browser, vision (OCR
++ template matching), and tool-call recording. Built as a composition of
+sub-modules — each registers tools on the same FastMCP instance, and
+optional groups are skipped silently if their deps aren't installed.
+
+Loaded groups (32 mandatory + ~15 optional tools):
+
+### `_input` (always loaded — pyautogui + mss)
 
 | Tool | Description |
 | --- | --- |
-| `screenshot()` | PNG image of the primary display. |
-| `left_click(x, y)`, `right_click`, `double_click` | Mouse buttons. |
+| `screenshot()` | PNG of the primary display. |
+| `left_click` / `right_click` / `double_click(x, y)` | Mouse buttons. |
 | `mouse_move(x, y)` | Move cursor only. |
-| `left_click_drag(x1, y1, x2, y2)` | Drag with left button held. |
-| `type_text(text, interval=0)` | Simulated keystrokes. |
-| `key(combo)` | Single key or `+`-separated combo (`ctrl+s`). |
+| `left_click_drag(x1, y1, x2, y2, duration)` | Drag with left button. |
+| `type_text(text, interval)` | Simulated keystrokes. |
+| `key(combo)` | Single key or `+`-separated combo. |
 | `scroll(x, y, direction, amount)` | Vertical or horizontal scroll. |
 | `cursor_position()` / `get_screen_size()` | Read-only display info. |
 
-**Security:** this server controls the real machine. `pyautogui.FAILSAFE` is
-enabled — moving the mouse to the top-left corner aborts the current action.
-Don't approve this server on a host with active sensitive sessions; prefer
-a dedicated OS user or VM.
+### `_macos` (always loaded — macOS-only at runtime)
+
+| Tool | Description |
+| --- | --- |
+| `osascript(script, language='AppleScript', timeout)` | Run AppleScript or JXA. |
+| `list_windows()` | Every visible window across every app. |
+| `get_active_window()` | Frontmost app + window title. |
+| `focus_window(app)` | Bring an app to the foreground. |
+| `move_window(app, x, y, window_index=1)` / `resize_window(app, width, height, ...)` | Window geometry. |
+| `open_app(name)` / `quit_app(name)` | App lifecycle. |
+| `clipboard_read()` / `clipboard_write(text)` | macOS pasteboard. |
+| `notification(title, message, sound='')` | Display a Notification Center alert. |
+
+On non-macOS hosts each tool returns `{"error": "macOS only"}` instead of raising.
+
+### `_shell` (always loaded — stdlib only)
+
+| Tool | Description |
+| --- | --- |
+| `run_command(command, cwd='', timeout=60, shell=True)` | Run a shell command. |
+| `read_file(path, max_bytes=1_000_000)` / `write_file(path, content, append, make_parents)` | File I/O. |
+| `list_directory(path='.', include_hidden=False)` | `ls`-style listing with sizes. |
+| `list_processes(filter_name='', limit=100)` / `kill_process(pid, signal_name='TERM')` | Process control. |
+| `env()` | Server process environment variables. |
+
+### `_recording` (always loaded — stdlib only)
+
+| Tool | Description |
+| --- | --- |
+| `start_recording(path)` / `stop_recording()` / `recording_status()` | JSONL audit log of every tool call. |
+
+### `_browser` (optional — `pip install -e .[browser]` + `playwright install chromium`)
+
+| Tool | Description |
+| --- | --- |
+| `browser_open(url, headless)` / `browser_close(tab_id='')` | Launch / shut Chromium. |
+| `browser_list_tabs()` / `browser_switch_tab(tab_id)` | Multi-tab. |
+| `browser_navigate(url, tab_id, wait_until)` | Go to a URL. |
+| `browser_click(selector, tab_id, timeout)` / `browser_type(selector, text, ...)` | Form filling. |
+| `browser_screenshot(tab_id, full_page)` | PNG of the page. |
+| `browser_eval(expression, tab_id)` | Run JS, return JSON. |
+| `browser_content(tab_id, max_chars)` / `browser_text(selector, tab_id)` | HTML / visible text. |
+| `browser_wait_for(selector, tab_id, timeout, state)` | Selector wait. |
+
+### `_vision` (optional — `pip install -e .[vision]` + `tesseract` binary on PATH)
+
+| Tool | Description |
+| --- | --- |
+| `read_text_in_region(x, y, width, height, lang)` | OCR via pytesseract. |
+| `find_on_screen(template_path, threshold, max_results)` | OpenCV template matching with NMS. |
+| `wait_until_text_appears(text, timeout, poll_interval, region, lang)` | Poll OCR until a substring shows. |
+| `wait_until_pixel_color(x, y, rgb, tolerance, timeout, poll_interval)` | Wait for a pixel to hit a color. |
+
+**Security:** this server controls the real machine, the browser, the
+shell, and the filesystem. No sandbox, no per-app allowlist. The only
+guardrail is `pyautogui.FAILSAFE` (mouse to top-left corner aborts the
+current action). Run inside a dedicated user or VM.
 
 ## Running locally
 
-`.mcp.json` launches each server via `uv run --with .` (or
-`--with .[computer-use]`), so users with [uv](https://docs.astral.sh/uv/)
-installed get a hermetic env automatically. To run without uv:
+`.mcp.json` launches each server via `uv run --with .[all]`, so users
+with [uv](https://docs.astral.sh/uv/) installed get a hermetic env
+automatically. To run without uv:
 
 ```bash
-pip install -e .                  # for sha256-chain only
-pip install -e .[computer-use]    # adds pyautogui + mss + Pillow
+pip install -e .                  # sha256-chain only
+pip install -e .[computer-use]    # base computer-use (input only)
+pip install -e .[all]             # input + browser + vision
+playwright install chromium       # for the browser group
 
 python -m src.mcp_servers.sha256_chain_server
-python -m src.mcp_servers.computer_use_server
+python -m src.mcp_servers.computer_use_server   # prints group status on stderr
 ```
 
 To inspect the servers manually:
