@@ -94,35 +94,27 @@ The official reference implementation (Docker container, Xvfb, real action
 handlers) lives at
 <https://github.com/anthropics/anthropic-quickstarts/tree/main/computer-use-demo>.
 
-## Related: computer-use-mcp (community MCP server)
+## Related: local MCP servers in this repo
 
-[`domdomegg/computer-use-mcp`](https://github.com/domdomegg/computer-use-mcp)
-wraps screenshot + nut.js-driven mouse/keyboard as an MCP server, so Claude
-Desktop, Claude Code, Cursor, and Cline can drive the host machine without you
-writing an agent loop.
+This repo ships two Python MCP servers in
+[`src/mcp_servers/`](src/mcp_servers/README.md):
 
-This repo's [`.mcp.json`](.mcp.json) registers it at project scope:
+- **`sha256-chain`** — exposes the SHA-256 / blockchain primitives from
+  `src/sha256.py`, `src/block.py`, and `src/chain.py` as MCP tools.
+- **`computer-use`** — a Python port of
+  [`domdomegg/computer-use-mcp`](https://github.com/domdomegg/computer-use-mcp)
+  built on `pyautogui` + `mss`. Mirrors the action surface of the Anthropic
+  computer use API tool so prompts are largely portable.
 
-```json
-{
-  "mcpServers": {
-    "computer-use": {
-      "command": "npx",
-      "args": ["-y", "computer-use-mcp"]
-    }
-  }
-}
-```
-
-When you next open this repo in Claude Code, it will prompt for approval before
-loading the server.
+Both are registered at project scope in [`.mcp.json`](.mcp.json) and launch
+under `uv run`. See [`src/mcp_servers/README.md`](src/mcp_servers/README.md)
+for the tool list and run instructions.
 
 **This is fundamentally different from the API tool above.** The Anthropic
-computer use tool expects you to provide a sandboxed environment; the MCP
-server drives *your real machine*. The author's own warning is to treat it
-"like giving a hyperactive toddler access" — use a sandboxed OS user, watch
-what it does, and don't leave it unattended on a machine with sensitive data
-or active sessions.
+computer use tool expects you to provide a sandboxed environment; the
+`computer-use` MCP server drives *your real machine*. Treat it like giving a
+hyperactive toddler access — use a sandboxed OS user, watch what it does,
+and don't approve it on a host with active sensitive sessions.
 
 ## Prompting tips from the docs
 

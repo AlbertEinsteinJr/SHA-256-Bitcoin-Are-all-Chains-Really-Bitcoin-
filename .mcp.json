@@ -1,8 +1,26 @@
 {
   "mcpServers": {
+    "sha256-chain": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        ".",
+        "python",
+        "-m",
+        "src.mcp_servers.sha256_chain_server"
+      ]
+    },
     "computer-use": {
-      "command": "npx",
-      "args": ["-y", "computer-use-mcp"]
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        ".[computer-use]",
+        "python",
+        "-m",
+        "src.mcp_servers.computer_use_server"
+      ]
     }
   }
 }
