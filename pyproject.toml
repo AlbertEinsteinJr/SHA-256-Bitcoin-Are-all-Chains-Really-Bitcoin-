@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sha256-mcp"
+version = "0.1.0"
+description = "SHA-256 / Bitcoin demo library plus MCP servers exposing it"
+readme = "COMPUTER_USE_TOOL.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0",
+]
+
+[project.optional-dependencies]
+computer-use = [
+    "pyautogui>=0.9.54",
+    "mss>=9.0",
+    "Pillow>=10.0",
+]
+browser = [
+    "playwright>=1.40",
+]
+vision = [
+    "pytesseract>=0.3.10",
+    "opencv-python>=4.8",
+    "numpy>=1.24",
+]
+all = [
+    "pyautogui>=0.9.54",
+    "mss>=9.0",
+    "Pillow>=10.0",
+    "playwright>=1.40",
+    "pytesseract>=0.3.10",
+    "opencv-python>=4.8",
+    "numpy>=1.24",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+sha256-chain-mcp = "src.mcp_servers.sha256_chain_server:main"
+computer-use-mcp-py = "src.mcp_servers.computer_use_server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]  # line length is handled by `line-length` for autoformat only
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B"]  # allow asserts and looser style in tests
+
