@@ -1,0 +1,95 @@
+{
+  "dxt_version": "0.1",
+  "name": "computer-use-ultimate",
+  "display_name": "Computer Use (Ultimate)",
+  "version": "0.1.0",
+  "description": "Full desktop, browser, shell, and vision control via the Model Context Protocol.",
+  "long_description": "An MCP server that exposes screenshot + mouse/keyboard, macOS-native AppleScript and window management, shell + filesystem + processes, headed Playwright Chromium, OCR + template matching, and tool-call recording. Built on the official `mcp` Python SDK (FastMCP). Optional groups (browser, vision) are loaded only if their deps are present so the server boots cleanly on minimal installs.",
+  "author": {
+    "name": "AlbertEinsteinJr",
+    "url": "https://github.com/AlbertEinsteinJr/SHA-256-Bitcoin-Are-all-Chains-Really-Bitcoin-"
+  },
+  "homepage": "https://github.com/AlbertEinsteinJr/SHA-256-Bitcoin-Are-all-Chains-Really-Bitcoin-",
+  "documentation": "https://github.com/AlbertEinsteinJr/SHA-256-Bitcoin-Are-all-Chains-Really-Bitcoin-/blob/main/src/mcp_servers/README.md",
+  "support": "https://github.com/AlbertEinsteinJr/SHA-256-Bitcoin-Are-all-Chains-Really-Bitcoin-/issues",
+  "license": "MIT",
+  "keywords": [
+    "computer-use",
+    "automation",
+    "macos",
+    "applescript",
+    "playwright",
+    "ocr",
+    "screenshot",
+    "mcp"
+  ],
+  "server": {
+    "type": "python",
+    "entry_point": "server/main.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["${__dirname}/server/main.py"],
+      "env": {
+        "PYTHONPATH": "${__dirname}/server/lib"
+      }
+    }
+  },
+  "tools_generated": false,
+  "tools": [
+    {"name": "screenshot", "description": "Capture the primary display."},
+    {"name": "left_click", "description": "Left-click at (x, y)."},
+    {"name": "right_click", "description": "Right-click at (x, y)."},
+    {"name": "double_click", "description": "Double-click at (x, y)."},
+    {"name": "mouse_move", "description": "Move cursor to (x, y)."},
+    {"name": "left_click_drag", "description": "Drag with left button held."},
+    {"name": "type_text", "description": "Type text via simulated keystrokes."},
+    {"name": "key", "description": "Press a key or '+'-separated combo."},
+    {"name": "scroll", "description": "Vertical or horizontal scroll."},
+    {"name": "cursor_position", "description": "Current cursor coordinates."},
+    {"name": "get_screen_size", "description": "Primary display size."},
+    {"name": "osascript", "description": "Run AppleScript or JXA (macOS)."},
+    {"name": "list_windows", "description": "Visible windows across all apps (macOS)."},
+    {"name": "get_active_window", "description": "Frontmost app and window (macOS)."},
+    {"name": "focus_window", "description": "Bring an app to the foreground (macOS)."},
+    {"name": "move_window", "description": "Move a window (macOS)."},
+    {"name": "resize_window", "description": "Resize a window (macOS)."},
+    {"name": "open_app", "description": "Launch an application (macOS)."},
+    {"name": "quit_app", "description": "Quit an application (macOS)."},
+    {"name": "clipboard_read", "description": "Read the system clipboard (macOS)."},
+    {"name": "clipboard_write", "description": "Write the system clipboard (macOS)."},
+    {"name": "notification", "description": "Show a Notification Center alert (macOS)."},
+    {"name": "run_command", "description": "Run a shell command."},
+    {"name": "read_file", "description": "Read a file as text."},
+    {"name": "write_file", "description": "Write text to a file."},
+    {"name": "list_directory", "description": "List a directory."},
+    {"name": "list_processes", "description": "List running processes."},
+    {"name": "kill_process", "description": "Send a signal to a process."},
+    {"name": "env", "description": "Server process environment variables."},
+    {"name": "start_recording", "description": "Begin a JSONL audit log of tool calls."},
+    {"name": "stop_recording", "description": "Stop the audit log."},
+    {"name": "recording_status", "description": "Recording status."},
+    {"name": "browser_open", "description": "Launch Chromium (optional)."},
+    {"name": "browser_close", "description": "Close a tab or shut the browser."},
+    {"name": "browser_list_tabs", "description": "List open tabs."},
+    {"name": "browser_switch_tab", "description": "Set the active tab."},
+    {"name": "browser_navigate", "description": "Navigate the active tab."},
+    {"name": "browser_click", "description": "Click an element by CSS selector."},
+    {"name": "browser_type", "description": "Fill a form field."},
+    {"name": "browser_screenshot", "description": "PNG of the active page."},
+    {"name": "browser_eval", "description": "Evaluate JS in the page."},
+    {"name": "browser_content", "description": "Page HTML."},
+    {"name": "browser_text", "description": "Visible text of an element."},
+    {"name": "browser_wait_for", "description": "Wait for a selector."},
+    {"name": "read_text_in_region", "description": "OCR a screen region."},
+    {"name": "find_on_screen", "description": "Template matching on the screen."},
+    {"name": "wait_until_text_appears", "description": "Poll OCR for a substring."},
+    {"name": "wait_until_pixel_color", "description": "Wait for a pixel to hit a target color."}
+  ],
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.10.0"
+    }
+  }
+}
