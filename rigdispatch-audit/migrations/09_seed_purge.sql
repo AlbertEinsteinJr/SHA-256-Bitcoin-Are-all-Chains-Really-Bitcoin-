@@ -1,0 +1,36 @@
+-- #9 SEED-DATA PURGE — STAGED, NOT APPLIED.
+-- Run ONLY at national go-live, after a fresh backup. Per instruction, seed data is kept until cutover
+-- so flows remain testable. Adjust the WHERE clauses to match real test-account identifiers before running.
+--
+-- Recommended order: snapshot first, then delete children before parents to respect FKs.
+
+-- 1) Snapshot everything to a dated backup schema (mirrors the existing rd_backup_20260602 pattern).
+-- CREATE SCHEMA IF NOT EXISTS rd_backup_golive;
+-- CREATE TABLE rd_backup_golive.rigdispatch_drivers     AS TABLE public.rigdispatch_drivers;
+-- CREATE TABLE rd_backup_golive.rigdispatch_mechanics   AS TABLE public.rigdispatch_mechanics;
+-- CREATE TABLE rd_backup_golive.rigdispatch_requests    AS TABLE public.rigdispatch_requests;
+-- CREATE TABLE rd_backup_golive.rigdispatch_offers      AS TABLE public.rigdispatch_offers;
+-- CREATE TABLE rd_backup_golive.rigdispatch_transactions AS TABLE public.rigdispatch_transactions;
+-- CREATE TABLE rd_backup_golive.dir_listings           AS TABLE public.dir_listings;
+-- CREATE TABLE rd_backup_golive.dir_placements         AS TABLE public.dir_placements;
+
+-- 2) Delete test transactional data (children first).
+-- BEGIN;
+--   DELETE FROM public.rigdispatch_messages       WHERE request_id IN (SELECT id FROM public.rigdispatch_requests);
+--   DELETE FROM public.rigdispatch_proof_assets   WHERE request_id IN (SELECT id FROM public.rigdispatch_requests);
+--   DELETE FROM public.rigdispatch_transactions;
+--   DELETE FROM public.rigdispatch_payment_intents;
+--   DELETE FROM public.rigdispatch_offers;
+--   DELETE FROM public.rigdispatch_requests;
+--   -- demo directory rows (keep any real claimed/paid listings!)
+--   DELETE FROM public.dir_events;
+--   DELETE FROM public.dir_placements   WHERE tier = 'free';
+--   DELETE FROM public.dir_listing_contacts;
+--   DELETE FROM public.dir_listings     WHERE claim_status = 'unclaimed';
+--   -- seed identities (scope to known test ids/phone prefixes before running!)
+--   DELETE FROM public.rigdispatch_mechanic_profiles;
+--   DELETE FROM public.rigdispatch_mechanics;
+--   DELETE FROM public.rigdispatch_drivers;
+-- COMMIT;
+
+-- 3) Re-run get_advisors + a smoke test of all three apps before announcing live.
