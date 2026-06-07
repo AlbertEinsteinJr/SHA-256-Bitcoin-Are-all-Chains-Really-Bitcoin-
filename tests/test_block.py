@@ -1,7 +1,6 @@
 """Tests for block structures and mining."""
 
-from src.block import Block, BlockHeader, Transaction, mine_block
-from src.sha256 import sha256
+from src.block import BlockHeader, Transaction, mine_block
 
 
 class TestBlockHeader:

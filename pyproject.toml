@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prometheus-operator-os"
+version = "0.1.0"
+description = "PROMETHEUS — a live recursive self-improvement engine over a SHA-256/blockchain core"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+# The live "brain" for the L3 generator (optional; the engine runs fully offline).
+live = ["anthropic>=0.40"]
+# Everything CI needs.
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "ruff>=0.6"]
+
+[project.scripts]
+prometheus = "prometheus.cli:main"
+
+[tool.setuptools]
+# `src` and `prometheus` are top-level import packages (tests use `from src...`).
+packages = ["src", "prometheus"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+# Generated artifacts and runtime state are not source.
+extend-exclude = ["archive", ".prometheus", "tests/test_prometheus_evolved.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "tests_meta"]
+norecursedirs = ["archive", ".prometheus", ".git", "__pycache__", "*.egg"]

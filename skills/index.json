@@ -1,0 +1,16 @@
+{
+  "_comment": "Human-readable registry of notable skills (Voyager pattern). The live source of truth is the sqlite store at .prometheus/skills.db, populated by the engine on each promotion. Admission requires self-verification + a passing eval.",
+  "skills": [
+    {
+      "name": "chain-tamper-regression-test",
+      "description": "Detect a tampered blockchain block: mutate a transaction amount after mining and assert validate_chain() returns False.",
+      "language": "python",
+      "verified": true,
+      "eval_score": 1.0,
+      "version": 1,
+      "parent_id": null,
+      "origin": "seed",
+      "code_ref": "prometheus/genes.py::GENES['tamper']"
+    }
+  ]
+}

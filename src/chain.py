@@ -9,8 +9,6 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from .block import Block, BlockHeader, Transaction, mine_block
-from .sha256 import sha256
-
 
 GENESIS_PREV_HASH = "0" * 64
 

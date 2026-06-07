@@ -58,9 +58,7 @@ class Transaction:
 
     def __post_init__(self):
         if not self.tx_id:
-            self.tx_id = sha256(
-                f"{self.sender}{self.recipient}{self.amount}{time.time()}".encode()
-            )
+            self.tx_id = sha256(f"{self.sender}{self.recipient}{self.amount}{time.time()}".encode())
 
     def serialize(self) -> bytes:
         return f"{self.sender}:{self.recipient}:{self.amount}".encode()

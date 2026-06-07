@@ -2,3 +2,19 @@ __pycache__/
 *.pyc
 .coverage
 .pytest_cache/
+
+# Build artifacts from `pip install -e .`
+*.egg-info/
+build/
+dist/
+
+# PROMETHEUS runtime state (archive DB, audit/trace logs, worktrees, kill flag)
+.prometheus/
+
+# Engine-generated lineage snapshots (the archive/ directory keeps its README,
+# but the promoted .py snapshots are runtime artifacts, not source).
+archive/*.py
+
+# The promoted evolved test file is a generated artifact (proof-of-life output),
+# so a fresh clone starts with real coverage headroom for `improve` to close.
+tests/test_prometheus_evolved.py

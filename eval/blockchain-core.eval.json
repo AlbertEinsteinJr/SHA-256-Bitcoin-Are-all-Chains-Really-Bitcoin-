@@ -1,0 +1,29 @@
+{
+  "component": "blockchain-core",
+  "description": "Binary assertions for the SHA-256/blockchain core. Seeded from TEST_COVERAGE_ANALYSIS.md priority tables. Several FAIL on a fresh tree -- that is the real headroom the engine closes.",
+  "cases": [
+    {"id": "suite_green",            "type": "suite_green", "why": "all collected tests must pass"},
+    {"id": "total_cov_95",           "type": "invariant", "min_total": 95, "why": "overall coverage target"},
+    {"id": "cov_chain_95",           "type": "coverage", "module": "src/chain.py",  "min": 95, "why": "CRITICAL: chain validation + compare_chains"},
+    {"id": "cov_block_95",           "type": "coverage", "module": "src/block.py",  "min": 95, "why": "HIGH: Merkle tree + mining edges"},
+    {"id": "cov_sha256_100",         "type": "coverage", "module": "src/sha256.py", "min": 100, "why": "LOW: TypeError branch + NIST vector"},
+    {"id": "tamper_detected",        "type": "test_passes", "name": "test_prom_tampered_block_detected", "why": "tamper detection is the core security property"},
+    {"id": "broken_linkage",         "type": "test_passes", "name": "test_prom_broken_linkage_detected", "why": "prev_block_hash linkage must be validated"},
+    {"id": "invalid_merkle",         "type": "test_passes", "name": "test_prom_invalid_merkle_root_detected", "why": "merkle root must be validated"},
+    {"id": "compare_longer",         "type": "test_passes", "name": "test_prom_compare_chains_longer_wins", "why": "longest valid chain wins"},
+    {"id": "compare_invalid",        "type": "test_passes", "name": "test_prom_compare_chains_invalid_loses", "why": "invalid chain loses regardless of length"},
+    {"id": "compare_equal",          "type": "test_passes", "name": "test_prom_compare_chains_equal", "why": "equal-length valid chains -> equal"},
+    {"id": "compare_both_invalid",   "type": "test_passes", "name": "test_prom_compare_chains_both_invalid", "why": "both invalid -> equal"},
+    {"id": "get_index_oob",          "type": "test_passes", "name": "test_prom_get_block_by_index_out_of_range", "why": "out-of-range index returns None"},
+    {"id": "add_empty_chain",        "type": "test_passes", "name": "test_prom_add_block_empty_chain_none", "why": "add_block on empty chain -> None"},
+    {"id": "latest_empty",           "type": "test_passes", "name": "test_prom_get_latest_block_empty_none", "why": "latest of empty chain -> None"},
+    {"id": "empty_merkle",           "type": "test_passes", "name": "test_prom_empty_block_merkle_root", "why": "empty block merkle root is all zeros"},
+    {"id": "odd_merkle",             "type": "test_passes", "name": "test_prom_odd_transactions_merkle", "why": "odd transaction count duplicates last hash"},
+    {"id": "multilevel_merkle",      "type": "test_passes", "name": "test_prom_multilevel_merkle", "why": "multi-level merkle tree builds"},
+    {"id": "merkle_validate",        "type": "test_passes", "name": "test_prom_validate_merkle_root_matches", "why": "validate_merkle_root both branches"},
+    {"id": "mine_fail",              "type": "test_passes", "name": "test_prom_mine_block_failure_none", "why": "mine_block returns None when exhausted"},
+    {"id": "sha_typeerror",          "type": "test_passes", "name": "test_prom_sha256_typeerror", "why": "non-bytes input raises TypeError"},
+    {"id": "sha_nist_abc",           "type": "test_passes", "name": "test_prom_sha256_nist_abc", "why": "NIST FIPS 180-4 vector for 'abc'"},
+    {"id": "double_sha",             "type": "test_passes", "name": "test_prom_double_sha256_len", "why": "double_sha256 returns a 64-char digest"}
+  ]
+}
