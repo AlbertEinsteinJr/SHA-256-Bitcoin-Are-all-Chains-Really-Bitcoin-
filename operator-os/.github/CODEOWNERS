@@ -1,0 +1,9 @@
+# Safety-critical files — changes require human review (CLAUDE.md §0/§3).
+# The self-improvement loop is a bot identity NOT listed here and cannot approve
+# changes to these paths. CI also fails any PR whose diff intersects them.
+/operator-os/CLAUDE.md                      @AlbertEinsteinJr
+/operator-os/src/core/safety.ts             @AlbertEinsteinJr
+/operator-os/src/core/kernel.ts             @AlbertEinsteinJr
+/operator-os/src/eval/engine.ts             @AlbertEinsteinJr
+/operator-os/src/eval/judge.ts              @AlbertEinsteinJr
+/operator-os/integrity.manifest.json        @AlbertEinsteinJr

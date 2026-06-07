@@ -1,0 +1,36 @@
+:root {
+  --bg: #0b0e14;
+  --panel: #141a24;
+  --panel2: #1b2330;
+  --ink: #e6edf3;
+  --muted: #8b98a9;
+  --accent: #4ade80;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --line: #243044;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+a { color: var(--accent); text-decoration: none; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.row { display: flex; gap: 16px; flex-wrap: wrap; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px 18px; flex: 1; min-width: 240px; }
+.card h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; color: var(--muted); letter-spacing: .08em; }
+.big { font-size: 28px; font-weight: 700; }
+.ok { color: var(--accent); } .warn { color: var(--warn); } .danger { color: var(--danger); }
+.nav { display: flex; gap: 18px; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.nav .brand { font-weight: 700; color: var(--ink); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); }
+.badge.live { background: rgba(74,222,128,.12); color: var(--accent); border-color: rgba(74,222,128,.4); }
+.badge.halted { background: rgba(248,113,113,.12); color: var(--danger); border-color: rgba(248,113,113,.5); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+button { background: var(--panel2); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 14px; cursor: pointer; font: inherit; }
+button:hover { border-color: var(--accent); }
+button.kill { border-color: rgba(248,113,113,.5); color: var(--danger); }
+pre { background: var(--panel2); padding: 12px; border-radius: 8px; overflow:auto; border:1px solid var(--line); }
+.muted { color: var(--muted); }

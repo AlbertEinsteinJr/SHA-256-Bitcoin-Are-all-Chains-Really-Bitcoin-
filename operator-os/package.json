@@ -1,0 +1,49 @@
+{
+  "name": "operator-os",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Operator OS — a war-room-hardened recursive self-improvement operator platform.",
+  "bin": {
+    "operator": "./dist/cli/operator.js"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:unit": "vitest run --dir src",
+    "eval": "tsx src/cli/operator.ts eval",
+    "loop": "tsx src/cli/operator.ts loop",
+    "kill": "tsx src/cli/operator.ts kill",
+    "sanity": "tsx scripts/sanity.ts",
+    "worker": "tsx src/worker/main.ts",
+    "cli": "tsx src/cli/operator.ts",
+    "seed": "tsx scripts/seed.ts",
+    "provision": "tsx scripts/provision.ts",
+    "verify-integrity": "tsx scripts/verify-integrity.ts",
+    "gen:integrity": "tsx scripts/verify-integrity.ts --write"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
+    "@supabase/supabase-js": "^2.58.0",
+    "next": "^15.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "voyageai": "^0.0.4",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
