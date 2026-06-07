@@ -1,2 +1,6 @@
 pytest>=7.0
 pytest-cov>=4.0
+
+# Optional: the live "brain" for the L3 generator. PROMETHEUS runs fully offline
+# without this; install it (and set ANTHROPIC_API_KEY) to use `improve --online`.
+# anthropic>=0.40

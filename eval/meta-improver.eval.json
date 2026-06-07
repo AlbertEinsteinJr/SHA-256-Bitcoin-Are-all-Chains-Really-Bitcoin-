@@ -1,0 +1,11 @@
+{
+  "component": "meta-improver",
+  "description": "Gates the IMPROVER's own quality (L8 meta-loop / STOP). These criteria reward an improver that finds more real fixes per unit cost while staying inside the safety envelope. The meta-loop may tune generation policy only -- never the evaluator's scoring intent or the safety modules.",
+  "criteria": [
+    {"id": "fixes_per_iteration",  "goal": "maximize", "why": "more failing assertions closed per generation"},
+    {"id": "regression_rate",      "goal": "minimize", "why": "never break a previously passing assertion"},
+    {"id": "diversity",            "goal": "maximize", "why": "occupy more MAP-Elites niches (avoid local optima)"},
+    {"id": "spend_per_promotion",  "goal": "minimize", "why": "cost discipline; respect the spend cap"},
+    {"id": "fence_intact",         "goal": "require",  "why": "must never edit evaluator.py / safety.py / audit.py / CLAUDE.md"}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "_comment": "Current-best score per component. Updated by the engine when a variant is promoted. A change ships only if it beats the recorded best AND passes regression.",
+  "blockchain-core": {
+    "score": 0.0,
+    "total_coverage": 0.0,
+    "updated_at": null
+  }
+}
