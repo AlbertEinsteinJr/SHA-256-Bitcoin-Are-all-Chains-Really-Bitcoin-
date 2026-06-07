@@ -1,0 +1,32 @@
+name: operator-os CI
+on:
+  push:
+    paths: ["operator-os/**", ".github/workflows/operator-os-ci.yml"]
+  pull_request:
+    paths: ["operator-os/**", ".github/workflows/operator-os-ci.yml"]
+defaults:
+  run:
+    working-directory: operator-os
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: operator-os/package-lock.json
+      - run: npm ci
+      - name: typecheck
+        run: npm run typecheck
+      - name: unit tests
+        run: npm test
+      - name: integrity guard (safety files unchanged vs manifest)
+        run: npm run verify-integrity
+      - name: eval-gate (deterministic, offline)
+        run: npx tsx src/cli/operator.ts eval
+      - name: sanity (constitution invariants)
+        run: npm run sanity
+      - name: build
+        run: npm run build
