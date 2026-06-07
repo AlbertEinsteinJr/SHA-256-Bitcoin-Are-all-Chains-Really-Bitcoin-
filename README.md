@@ -10,11 +10,24 @@ own improver.
 > The evaluator is the moat and is built first: you can only safely auto-improve what
 > you can automatically score.
 
-## Proof of life (no API key needed)
+## Easiest start: one command
 
 ```bash
 pip install -r requirements.txt
+python -m prometheus verify        # checks the code, improves it, explains the result in plain English
+```
 
+Output:
+```
+  Before :  4% of checks passed   (81% of the code was tested)
+  After  :  100% of checks passed   (99% of the code was tested)
+  Result :  It improved the code and saved the new tests to tests/test_prometheus_evolved.py
+  Gain   :  a 96% jump, done automatically.
+```
+
+## Proof of life (no API key needed)
+
+```bash
 python -m prometheus run --eval blockchain-core      # the gate: baseline ~4% (real headroom)
 python -m prometheus improve --target blockchain-core # the loop: autonomously closes the gaps
 ```

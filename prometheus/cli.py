@@ -2,6 +2,7 @@
 Command-line entrypoint: `python -m prometheus <command>`.
 
 Commands:
+    verify     one command, plain English: check + improve + show the result
     run        score the current repo against an eval suite (the gate)
     improve    run the eval-gated self-improvement loop on a target
     dashboard  render the live observability dashboard
@@ -73,6 +74,45 @@ def cmd_improve(args) -> int:
     for f in summary.flags:
         print(f"  flag     : {f}")
     print()
+    return 0
+
+
+def cmd_verify(args) -> int:
+    """One command, plain English: check the code, improve it, show the result."""
+    cfg = load_config()
+    if args.online:
+        cfg.offline = False
+    safety = SafetyManager(cfg)
+    ev = _evaluator(cfg, args.eval)
+    engine = EvolutionEngine(cfg, safety, evaluator=ev)
+
+    print("\nPROMETHEUS — one-shot verify")
+    print("  Step 1/3  Checking how good the code is right now...")
+    print("  Step 2/3  Improving it automatically (this can take a minute)...")
+    summary = engine.improve(args.target, max_iter=args.max_iter, approval_token=args.token)
+
+    bs, fs = summary.baseline_score, summary.final_score
+    bc, fc = summary.baseline_cov, summary.final_cov
+    print("\n  Step 3/3  Here's what happened:\n")
+    print(f"    Before :  {bs:.0%} of checks passed   ({bc:.0f}% of the code was tested)")
+    print(f"    After  :  {fs:.0%} of checks passed   ({fc:.0f}% of the code was tested)")
+    print()
+
+    if summary.promoted:
+        print("    Result :  It improved the code and saved the new tests to")
+        print(f"              {summary.promoted_path}")
+    else:
+        print("    Result :  The code was already as good as it could get — nothing changed.")
+
+    gain = fs - bs
+    if gain > 0:
+        print(f"    Gain   :  a {gain:.0%} jump, done automatically.")
+    print(f"    Tried  :  {summary.archived_count} versions; kept the best (full history saved).")
+
+    if any("saturating" in f or "satisfied" in f for f in summary.flags):
+        print("    Note   :  it stopped because every check is now satisfied.")
+
+    print("\n  Done. Run `python -m prometheus dashboard` to see the scoreboard.\n")
     return 0
 
 
@@ -160,6 +200,14 @@ def build_parser() -> argparse.ArgumentParser:
     pi.add_argument("--online", action="store_true", help="use the live Claude generator")
     pi.add_argument("--token", default=None, help="APPROVED-<ACTION>-<YYYYMMDD> for gated targets")
     pi.set_defaults(func=cmd_improve)
+
+    pv = sub.add_parser("verify", help="one command: check + improve + show (plain English)")
+    pv.add_argument("--target", default="blockchain-core")
+    pv.add_argument("--eval", default="blockchain-core")
+    pv.add_argument("--max-iter", type=int, default=None)
+    pv.add_argument("--online", action="store_true", help="use the live Claude generator")
+    pv.add_argument("--token", default=None, help="APPROVED-<ACTION>-<YYYYMMDD> for gated targets")
+    pv.set_defaults(func=cmd_verify)
 
     pd = sub.add_parser("dashboard", help="render the live dashboard")
     pd.set_defaults(func=cmd_dashboard)
