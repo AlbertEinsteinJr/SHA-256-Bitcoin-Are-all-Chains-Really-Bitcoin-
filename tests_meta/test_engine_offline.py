@@ -4,15 +4,13 @@ generator (no network, no API key) and demonstrably improves the real coverage o
 the blockchain core. Also covers the orchestrator (L6) and the meta-loop fence (L8).
 """
 
-import shutil
-
 import pytest
 
 from prometheus.archive import Archive
 from prometheus.config import Config
 from prometheus.engine import EvolutionEngine
 from prometheus.evaluator import Evaluator
-from prometheus.meta import MetaLoop, FENCED_FILES
+from prometheus.meta import FENCED_FILES, MetaLoop
 from prometheus.orchestrator import Orchestrator, Task
 from prometheus.safety import SafetyError, SafetyManager
 

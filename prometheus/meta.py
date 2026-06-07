@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from .config import Config
 from .safety import SafetyError, SafetyManager
@@ -46,7 +46,9 @@ class MetaLoop:
         name = Path(target_file).name
         if name in FENCED_FILES:
             self.safety.audit.record(
-                "meta", "edit", blocked=True,
+                "meta",
+                "edit",
+                blocked=True,
                 note=f"fenced file (meta may not touch evaluator/safety): {name}",
             )
             raise SafetyError(

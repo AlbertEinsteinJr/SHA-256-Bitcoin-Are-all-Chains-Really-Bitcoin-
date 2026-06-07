@@ -60,12 +60,13 @@ class SafetyManager:
             self.audit.record("engine", action, approved=True, note="token accepted")
             return True
         self.audit.record(
-            "engine", action, approved=False, blocked=True,
+            "engine",
+            action,
+            approved=False,
+            blocked=True,
             note=f"missing/invalid approval token (need {want!r})",
         )
-        raise SafetyError(
-            f"Action {action!r} is gated. Provide token {want!r} to proceed."
-        )
+        raise SafetyError(f"Action {action!r} is gated. Provide token {want!r} to proceed.")
 
     def gated(self, action: str) -> Callable:
         """Decorator: wrap a destructive/production-class op behind the token."""
@@ -118,12 +119,12 @@ class SafetyManager:
         for p in self.cfg.protected_files:
             if not p.exists() or p.stat().st_size == 0:
                 self.audit.record(
-                    "engine", "integrity", blocked=True,
+                    "engine",
+                    "integrity",
+                    blocked=True,
                     note=f"protected file missing/empty: {p.name}",
                 )
-                raise SafetyError(
-                    f"Constitution integrity check failed: {p.name} missing/empty."
-                )
+                raise SafetyError(f"Constitution integrity check failed: {p.name} missing/empty.")
 
 
 class CapTracker:

@@ -98,8 +98,11 @@ class EvolutionEngine:
             improved_this_gen = False
             for island in range(self.cfg.caps.islands):
                 variants = self.generator.generate(
-                    target, parent_genes=best_genes, failures=self._failures(best_result),
-                    n=self.cfg.caps.variants_per_iteration, seed=gen * 1000 + island,
+                    target,
+                    parent_genes=best_genes,
+                    failures=self._failures(best_result),
+                    n=self.cfg.caps.variants_per_iteration,
+                    seed=gen * 1000 + island,
                 )
                 for variant in variants:
                     variant.parent_id = best_variant.id if best_variant else None
@@ -110,13 +113,21 @@ class EvolutionEngine:
 
                     promotable, why = self._is_promotable(variant, result, best_result)
                     self.archive.add(
-                        variant, result, island=island, generation=gen,
+                        variant,
+                        result,
+                        island=island,
+                        generation=gen,
                         promoted=promotable,
                     )
                     self.telemetry.event(
-                        "variant", id=variant.id, island=island, generation=gen,
-                        score=result.scalar, cov=result.total_coverage,
-                        promotable=promotable, why=why,
+                        "variant",
+                        id=variant.id,
+                        island=island,
+                        generation=gen,
+                        score=result.scalar,
+                        cov=result.total_coverage,
+                        promotable=promotable,
+                        why=why,
                     )
                     if promotable:
                         best_result = result
@@ -130,8 +141,11 @@ class EvolutionEngine:
             # parent across islands (periodic convergence point).
             stale = 0 if improved_this_gen else stale + 1
             self.telemetry.event(
-                "generation", generation=gen, best_score=best_result.scalar,
-                best_cov=best_result.total_coverage, stale=stale,
+                "generation",
+                generation=gen,
+                best_score=best_result.scalar,
+                best_cov=best_result.total_coverage,
+                stale=stale,
             )
             if best_result.scalar >= 1.0:
                 flags.append("all assertions satisfied")
@@ -152,19 +166,27 @@ class EvolutionEngine:
             self._admit_skill(target, best_variant, best_result)
             promoted = True
             self.telemetry.event(
-                "promote", id=best_variant.id, path=promoted_path,
-                score=best_result.scalar, cov=best_result.total_coverage,
+                "promote",
+                id=best_variant.id,
+                path=promoted_path,
+                score=best_result.scalar,
+                cov=best_result.total_coverage,
             )
 
         lineage = self.archive.lineage(target)
         self.telemetry.event("improve_end", target=target, promoted=promoted)
         return ImproveSummary(
             target=target,
-            baseline_score=baseline.scalar, baseline_cov=baseline.total_coverage,
-            final_score=best_result.scalar, final_cov=best_result.total_coverage,
-            generations=gen, promoted_id=best_variant.id if best_variant else None,
-            promoted_path=promoted_path, archived_count=len(lineage),
-            flags=flags, promoted=promoted,
+            baseline_score=baseline.scalar,
+            baseline_cov=baseline.total_coverage,
+            final_score=best_result.scalar,
+            final_cov=best_result.total_coverage,
+            generations=gen,
+            promoted_id=best_variant.id if best_variant else None,
+            promoted_path=promoted_path,
+            archived_count=len(lineage),
+            flags=flags,
+            promoted=promoted,
         )
 
     # ------------------------------------------------------------------ #
@@ -184,9 +206,7 @@ class EvolutionEngine:
         if result.scalar <= best.scalar and result.total_coverage <= best.total_coverage:
             return False, "does not beat current best"
         # Reward-hacking guard: a higher score must come with real assertions.
-        strength = self.evaluator.structural_strength(
-            [Path(self._tmp_strength_file(variant))]
-        )
+        strength = self.evaluator.structural_strength([Path(self._tmp_strength_file(variant))])
         if strength == 0 and result.scalar > best.scalar:
             return False, "reward-hack: score up with zero assertions (rejected + flagged)"
         return True, "beats best with green suite"
@@ -213,8 +233,11 @@ class EvolutionEngine:
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(variant.content, encoding="utf-8")
         self.safety.audit.record(
-            "engine", "promote", args=variant.id,
-            result={"path": variant.rel_path, "cov": result.total_coverage}, approved=True,
+            "engine",
+            "promote",
+            args=variant.id,
+            result={"path": variant.rel_path, "cov": result.total_coverage},
+            approved=True,
         )
         return variant.rel_path
 
@@ -225,7 +248,6 @@ class EvolutionEngine:
         archive_dir = self.cfg.repo_root / "archive"
         archive_dir.mkdir(exist_ok=True)
         # Try to recover a score tag from the current best in the DB.
-        target_guess = dest.stem
         rec = None
         for t in self.archive.all_targets():
             rec = self.archive.best(t)

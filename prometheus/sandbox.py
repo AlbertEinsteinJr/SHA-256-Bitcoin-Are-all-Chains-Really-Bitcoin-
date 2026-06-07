@@ -21,7 +21,7 @@ import shlex
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
@@ -32,7 +32,7 @@ from .safety import SafetyError, SafetyManager
 
 @dataclass
 class Action:
-    kind: str            # "write" | "exec"
+    kind: str  # "write" | "exec"
     detail: str
     dry_run: bool
     result: str = ""
@@ -113,8 +113,11 @@ class Sandbox:
             self.audit.record("sandbox", "exec", args=command, result=act.result)
             return RunResult(0, "", "")
         proc = subprocess.run(
-            shlex.split(command), cwd=str(self.root),
-            capture_output=True, text=True, timeout=300,
+            shlex.split(command),
+            cwd=str(self.root),
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
         act.result = f"rc={proc.returncode}"
         self.actions.append(act)
@@ -126,7 +129,9 @@ class Sandbox:
         low = command.lower()
         for frag in self.cfg.forbidden_fragments:
             if frag.lower() in low:
-                self.audit.record("sandbox", "exec", blocked=True, note=f"forbidden fragment: {frag}")
+                self.audit.record(
+                    "sandbox", "exec", blocked=True, note=f"forbidden fragment: {frag}"
+                )
                 raise SafetyError(f"refused command (forbidden fragment {frag!r}): {command}")
         head = shlex.split(command)[0] if command.strip() else ""
         base = Path(head).name
@@ -135,8 +140,9 @@ class Sandbox:
             raise SafetyError(f"refused command (not in allowlist): {base}")
 
     def _git(self, args: List[str]) -> None:
-        subprocess.run(["git", *args], cwd=str(self.cfg.repo_root),
-                       check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["git", *args], cwd=str(self.cfg.repo_root), check=True, capture_output=True, text=True
+        )
 
     def _remove_worktree(self, path: Path) -> None:
         try:

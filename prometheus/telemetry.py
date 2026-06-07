@@ -48,7 +48,7 @@ def sparkline(values: List[float]) -> str:
 
 def export_lineage_dot(archive, target: str) -> str:
     """Render an archive lineage as a Graphviz DOT string."""
-    lines = ["digraph prometheus_lineage {", '  rankdir=LR; node [shape=box, fontsize=10];']
+    lines = ["digraph prometheus_lineage {", "  rankdir=LR; node [shape=box, fontsize=10];"]
     for rec in archive.lineage(target):
         color = "green" if rec.promoted else "gray"
         label = f"{rec.id}\\nscore={rec.score:.2f} cov={rec.total_cov:.0f}%"
@@ -62,9 +62,14 @@ def export_lineage_dot(archive, target: str) -> str:
 def export_lineage_json(archive, target: str) -> str:
     payload = [
         {
-            "id": r.id, "parent": r.parent_id, "score": r.score,
-            "total_cov": r.total_cov, "promoted": r.promoted,
-            "island": r.island, "generation": r.generation, "genes": r.genes,
+            "id": r.id,
+            "parent": r.parent_id,
+            "score": r.score,
+            "total_cov": r.total_cov,
+            "promoted": r.promoted,
+            "island": r.island,
+            "generation": r.generation,
+            "genes": r.genes,
         }
         for r in archive.lineage(target)
     ]

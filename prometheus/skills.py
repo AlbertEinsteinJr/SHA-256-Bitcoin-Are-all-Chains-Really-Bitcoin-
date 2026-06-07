@@ -89,8 +89,14 @@ class SkillLibrary:
         self._conn.close()
 
     def add_skill(
-        self, name: str, description: str, code: str, *,
-        verified: bool, eval_score: Optional[float], language: str = "python",
+        self,
+        name: str,
+        description: str,
+        code: str,
+        *,
+        verified: bool,
+        eval_score: Optional[float],
+        language: str = "python",
         parent_id: Optional[int] = None,
     ) -> int:
         """Admit a skill. REFUSES unless verified AND eval_score is present."""
@@ -105,8 +111,18 @@ class SkillLibrary:
                (name, description, embedding, code, language, verified, eval_score,
                 version, parent_id, archived, created_at)
                VALUES (?,?,?,?,?,?,?,?,?,0,?)""",
-            (name, description, emb, code, language, int(verified), eval_score,
-             1, parent_id, time.time()),
+            (
+                name,
+                description,
+                emb,
+                code,
+                language,
+                int(verified),
+                eval_score,
+                1,
+                parent_id,
+                time.time(),
+            ),
         )
         self._conn.commit()
         return int(cur.lastrowid)
@@ -141,22 +157,39 @@ class SkillLibrary:
                (name, description, embedding, code, language, verified, eval_score,
                 version, parent_id, archived, created_at)
                VALUES (?,?,?,?,?,?,?,?,?,0,?)""",
-            (f"{parent['name']}.v{parent['version'] + 1}", parent["description"], emb,
-             code, parent["language"], int(verified), eval_score,
-             parent["version"] + 1, parent_id, time.time()),
+            (
+                f"{parent['name']}.v{parent['version'] + 1}",
+                parent["description"],
+                emb,
+                code,
+                parent["language"],
+                int(verified),
+                eval_score,
+                parent["version"] + 1,
+                parent_id,
+                time.time(),
+            ),
         )
         self._conn.commit()
         return int(cur.lastrowid)
 
     def all_skills(self, include_archived: bool = False) -> List[Skill]:
-        sql = "SELECT * FROM skills" if include_archived else "SELECT * FROM skills WHERE archived=0"
+        sql = (
+            "SELECT * FROM skills" if include_archived else "SELECT * FROM skills WHERE archived=0"
+        )
         return [_to_skill(r) for r in self._conn.execute(sql).fetchall()]
 
 
 def _to_skill(row: sqlite3.Row) -> Skill:
     return Skill(
-        id=row["id"], name=row["name"], description=row["description"], code=row["code"],
-        language=row["language"], verified=bool(row["verified"]),
-        eval_score=row["eval_score"], version=row["version"],
-        parent_id=row["parent_id"], archived=bool(row["archived"]),
+        id=row["id"],
+        name=row["name"],
+        description=row["description"],
+        code=row["code"],
+        language=row["language"],
+        verified=bool(row["verified"]),
+        eval_score=row["eval_score"],
+        version=row["version"],
+        parent_id=row["parent_id"],
+        archived=bool(row["archived"]),
     )

@@ -57,9 +57,22 @@ class Config:
     # Substrings that, if present in any command, are hard-refused everywhere.
     forbidden_fragments: List[str] = field(
         default_factory=lambda: [
-            "rm -rf", "rm -r", "mkfs", "dd ", ":(){", "shutdown", "reboot",
-            "DROP TABLE", "DROP DATABASE", "--force", "-f origin", "push --force",
-            "curl ", "wget ", "nc ", "sudo ",
+            "rm -rf",
+            "rm -r",
+            "mkfs",
+            "dd ",
+            ":(){",
+            "shutdown",
+            "reboot",
+            "DROP TABLE",
+            "DROP DATABASE",
+            "--force",
+            "-f origin",
+            "push --force",
+            "curl ",
+            "wget ",
+            "nc ",
+            "sudo ",
         ]
     )
 

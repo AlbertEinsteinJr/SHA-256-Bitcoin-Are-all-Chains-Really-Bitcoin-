@@ -2,7 +2,7 @@
 
 import hashlib
 
-from src.sha256 import sha256, double_sha256
+from src.sha256 import double_sha256, sha256
 
 
 class TestSHA256:

@@ -80,8 +80,12 @@ class OfflineGenerator(Generator):
         content = gene_pool.assemble(gene_names)
         vid = f"v{salt}-{tag}-{len(gene_names)}"
         return Variant(
-            id=vid, target=target, rel_path=EVOLVED_PATH, content=content,
-            genes=list(gene_names), source="offline",
+            id=vid,
+            target=target,
+            rel_path=EVOLVED_PATH,
+            content=content,
+            genes=list(gene_names),
+            source="offline",
         )
 
 
@@ -130,8 +134,11 @@ class ClaudeGenerator(Generator):
             if code:
                 variants.append(
                     Variant(
-                        id=f"claude-{i}", target=target, rel_path=EVOLVED_PATH,
-                        content=code, source="claude",
+                        id=f"claude-{i}",
+                        target=target,
+                        rel_path=EVOLVED_PATH,
+                        content=code,
+                        source="claude",
                     )
                 )
         if not variants:

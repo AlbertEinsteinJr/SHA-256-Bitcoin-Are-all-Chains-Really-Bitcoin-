@@ -70,19 +70,27 @@ class Archive:
         self._conn.close()
 
     # ---- writes ------------------------------------------------------------
-    def add(
-        self, variant, result, *, island: int, generation: int, promoted: bool = False
-    ) -> None:
+    def add(self, variant, result, *, island: int, generation: int, promoted: bool = False) -> None:
         self._conn.execute(
             """INSERT OR REPLACE INTO variants
                (id, target, rel_path, content, genes, score, total_cov, descriptor,
                 parent_id, island, generation, source, promoted, created_at)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
-                variant.id, variant.target, variant.rel_path, variant.content,
-                json.dumps(variant.genes), result.scalar, result.total_coverage,
-                json.dumps(list(result.behavior_descriptor)), variant.parent_id,
-                island, generation, variant.source, int(promoted), time.time(),
+                variant.id,
+                variant.target,
+                variant.rel_path,
+                variant.content,
+                json.dumps(variant.genes),
+                result.scalar,
+                result.total_coverage,
+                json.dumps(list(result.behavior_descriptor)),
+                variant.parent_id,
+                island,
+                generation,
+                variant.source,
+                int(promoted),
+                time.time(),
             ),
         )
         self._conn.commit()
@@ -130,9 +138,18 @@ class Archive:
 
 def _to_record(row: sqlite3.Row) -> Record:
     return Record(
-        id=row["id"], target=row["target"], rel_path=row["rel_path"],
-        content=row["content"], genes=json.loads(row["genes"]), score=row["score"],
-        total_cov=row["total_cov"], descriptor=tuple(json.loads(row["descriptor"])),
-        parent_id=row["parent_id"], island=row["island"], generation=row["generation"],
-        source=row["source"], promoted=bool(row["promoted"]), created_at=row["created_at"],
+        id=row["id"],
+        target=row["target"],
+        rel_path=row["rel_path"],
+        content=row["content"],
+        genes=json.loads(row["genes"]),
+        score=row["score"],
+        total_cov=row["total_cov"],
+        descriptor=tuple(json.loads(row["descriptor"])),
+        parent_id=row["parent_id"],
+        island=row["island"],
+        generation=row["generation"],
+        source=row["source"],
+        promoted=bool(row["promoted"]),
+        created_at=row["created_at"],
     )

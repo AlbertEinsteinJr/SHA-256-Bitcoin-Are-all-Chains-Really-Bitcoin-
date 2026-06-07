@@ -6,15 +6,18 @@ Kept out of tests/ so the evaluator (which runs `pytest tests/`) never recurses
 into the engine's own tests.
 """
 
-import time
-from datetime import datetime, timezone
-
 import pytest
 
 from prometheus.audit import AuditLog
 from prometheus.config import Config
 from prometheus.reliability import (
-    MAX_CHAIN_STEPS, ValidationError, chain, parallel, validate, vote, with_reflection,
+    MAX_CHAIN_STEPS,
+    ValidationError,
+    chain,
+    parallel,
+    validate,
+    vote,
+    with_reflection,
 )
 from prometheus.safety import SafetyError, SafetyManager, expected_token
 from prometheus.sandbox import Sandbox
@@ -185,8 +188,11 @@ class TestSkillLibrary:
     def test_admits_verified_and_retrieves(self, tmp_path):
         lib = SkillLibrary(tmp_path / "skills.db")
         sid = lib.add_skill(
-            "tamper-test", "detect tampered blockchain block", "code",
-            verified=True, eval_score=0.9,
+            "tamper-test",
+            "detect tampered blockchain block",
+            "code",
+            verified=True,
+            eval_score=0.9,
         )
         assert sid > 0
         hits = lib.search_skills("blockchain tamper detection", k=1)

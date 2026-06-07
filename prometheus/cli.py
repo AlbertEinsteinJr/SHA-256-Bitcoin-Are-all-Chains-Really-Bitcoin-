@@ -19,8 +19,8 @@ from pathlib import Path
 
 from .archive import Archive
 from .config import load_config
-from .evaluator import Evaluator
 from .engine import EvolutionEngine
+from .evaluator import Evaluator
 from .meta import MetaLoop
 from .safety import SafetyError, SafetyManager
 from .telemetry import Telemetry, export_lineage_dot, export_lineage_json
@@ -40,8 +40,10 @@ def cmd_run(args) -> int:
     safety.assert_integrity()
     ev = _evaluator(cfg, args.eval)
     result = ev.evaluate(cfg.repo_root)
-    print(f"\nEVAL: {args.eval}   score = {result.passed}/{result.total} "
-          f"({result.scalar:.0%})   total coverage = {result.total_coverage:.1f}%\n")
+    print(
+        f"\nEVAL: {args.eval}   score = {result.passed}/{result.total} "
+        f"({result.scalar:.0%})   total coverage = {result.total_coverage:.1f}%\n"
+    )
     for c in result.cases:
         mark = "PASS" if c.passed else "FAIL"
         print(f"  [{mark}] {c.id:<32} {c.detail}")
@@ -101,10 +103,16 @@ def cmd_replay(args) -> int:
     for e in events:
         kind = e.get("kind")
         if kind == "variant":
-            print(f"  gen{e.get('generation')} {e.get('id'):<18} "
-                  f"score={e.get('score'):.2f} cov={e.get('cov'):.0f}% promotable={e.get('promotable')}")
+            print(
+                f"  gen{e.get('generation')} {e.get('id'):<18} "
+                f"score={e.get('score'):.2f} cov={e.get('cov'):.0f}% "
+                f"promotable={e.get('promotable')}"
+            )
         elif kind in ("baseline", "generation", "promote", "improve_start", "improve_end"):
-            print(f"  [{kind}] " + ", ".join(f"{k}={v}" for k, v in e.items() if k not in ("kind", "ts")))
+            print(
+                f"  [{kind}] "
+                + ", ".join(f"{k}={v}" for k, v in e.items() if k not in ("kind", "ts"))
+            )
     return 0
 
 

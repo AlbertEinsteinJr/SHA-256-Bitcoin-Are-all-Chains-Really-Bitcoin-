@@ -25,7 +25,7 @@ import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 @dataclass
@@ -38,7 +38,7 @@ class CaseResult:
 
 @dataclass
 class EvalResult:
-    scalar: float                      # passed / total in [0, 1]
+    scalar: float  # passed / total in [0, 1]
     passed: int
     total: int
     cases: List[CaseResult] = field(default_factory=list)
@@ -129,9 +129,16 @@ class Evaluator:
         # never recurses into the engine's own tests (which live in tests_meta/).
         target = "tests" if (Path(workdir) / "tests").exists() else "."
         cmd = [
-            sys.executable, "-m", "pytest", "-q", "-rA", target,
-            "--cov=src", f"--cov-report=json:{cov_json}",
-            "-p", "no:cacheprovider",
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "-rA",
+            target,
+            "--cov=src",
+            f"--cov-report=json:{cov_json}",
+            "-p",
+            "no:cacheprovider",
         ]
         return subprocess.run(
             cmd, cwd=str(workdir), capture_output=True, text=True, timeout=self.timeout_s
@@ -187,13 +194,19 @@ class Evaluator:
                 return CaseResult(cid, ctype, ok, f"{module} {got:.1f}% (need {case['min']}%)")
             if ctype == "invariant":
                 ok = total_cov >= float(case.get("min_total", 0))
-                return CaseResult(cid, ctype, ok, f"total {total_cov:.1f}% (need {case.get('min_total')}%)")
+                return CaseResult(
+                    cid, ctype, ok, f"total {total_cov:.1f}% (need {case.get('min_total')}%)"
+                )
             if ctype == "suite_green":
-                return CaseResult(cid, ctype, suite_green, "all tests pass" if suite_green else "suite red")
+                return CaseResult(
+                    cid, ctype, suite_green, "all tests pass" if suite_green else "suite red"
+                )
             if ctype == "test_passes":
                 name = case["name"]
                 ok = name in passed_tests
-                return CaseResult(cid, ctype, ok, f"{name} {'present+passed' if ok else 'missing/failed'}")
+                return CaseResult(
+                    cid, ctype, ok, f"{name} {'present+passed' if ok else 'missing/failed'}"
+                )
             return CaseResult(cid, ctype or "unknown", False, f"unknown assertion type {ctype!r}")
         except (KeyError, ValueError) as exc:
             return CaseResult(cid, ctype, False, f"malformed case: {exc}")

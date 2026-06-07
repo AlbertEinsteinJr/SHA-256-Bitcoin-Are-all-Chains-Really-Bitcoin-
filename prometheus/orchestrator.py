@@ -54,9 +54,7 @@ class Orchestrator:
         # Verification pass: vote over the critical field for self-consistency.
         critical_values = [r[critical_key] for r in clean if r.get("ok")]
         verified = vote(critical_values) if critical_values else None
-        consensus = bool(critical_values) and all(
-            v == verified for v in critical_values
-        )
+        consensus = bool(critical_values) and all(v == verified for v in critical_values)
         return OrchestrationResult(results=clean, verified=verified, consensus=consensus)
 
     @staticmethod
