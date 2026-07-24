@@ -100,8 +100,19 @@ class Blockchain:
             if not block.header.is_well_formed():
                 return False
 
-            # Check proof-of-work
-            if not block.header.meets_difficulty():
+            # Check proof-of-work against the CHAIN's policy, never against
+            # the block's own declared difficulty_target -- that field is
+            # supplied by whoever produced the block, so trusting it lets a
+            # forged block declare difficulty_target=0 and satisfy the check
+            # with no work at all.
+            #
+            # Equality rather than >=: a block declaring a *harder* target
+            # than policy would still be unspendable work, but compare_chains
+            # ranks by length rather than cumulative work, so admitting mixed
+            # targets would let a short hard chain tie a long easy one.
+            if block.header.difficulty_target != self.difficulty:
+                return False
+            if not block.header.meets_difficulty(self.difficulty):
                 return False
 
             # Check Merkle root

@@ -173,14 +173,14 @@ class TestCompareChains:
 class TestKnownDefects:
     """Reproductions of open defects. Each asserts the behaviour we want."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "I-1: validate_chain trusts the block's own attacker-controlled "
-            "difficulty_target, allowing a full proof-of-work bypass"
-        ),
-    )
     def test_forged_difficulty_target_is_rejected(self, chain_2):
+        """I-1 (FIXED): a forged difficulty_target must not bypass proof-of-work.
+
+        Tampering the amount, repairing the Merkle root, then declaring
+        difficulty_target=0 previously satisfied every check and returned
+        True with a hash having zero leading zeros. validate_chain now binds
+        the target to the chain's own policy.
+        """
         bc = copy.deepcopy(chain_2)
         block = bc.chain[1]
 

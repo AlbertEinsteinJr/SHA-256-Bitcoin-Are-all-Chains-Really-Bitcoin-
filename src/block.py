@@ -63,12 +63,35 @@ class BlockHeader:
         """Compute the double-SHA-256 hash of this block header."""
         return double_sha256(self.serialize())
 
-    def meets_difficulty(self) -> bool:
-        """Check whether this header's hash meets the difficulty target."""
-        hash_hex = self.compute_hash()
-        # Count leading zero hex characters required
-        required_zeros = self.difficulty_target // 4
-        return hash_hex[:required_zeros] == "0" * required_zeros
+    def meets_difficulty(self, required_bits: Optional[int] = None) -> bool:
+        """
+        Check whether this header's hash meets a difficulty target.
+
+        Parameters
+        ----------
+        required_bits : Optional[int]
+            The number of leading zero *bits* the CALLER demands. When
+            omitted, the header's own ``difficulty_target`` is used -- which
+            is correct while mining, because the miner chooses its own
+            target, and is NEVER correct while validating, because there the
+            target is supplied by whoever produced the block. Chain
+            validation must always pass the chain's policy explicitly.
+
+        Notes
+        -----
+        The comparison is bit-exact. The previous implementation counted
+        leading zero *hex characters* via ``difficulty_target // 4``, which
+        silently rounded down: targets of 8, 9, 10 and 11 bits all demanded
+        the same two hex zeros. For targets that are multiples of four the
+        two formulations agree exactly, so no existing chain is affected.
+        """
+        if required_bits is None:
+            required_bits = self.difficulty_target
+        if required_bits <= 0:
+            return True
+        if required_bits > 256:
+            return False
+        return int(self.compute_hash(), 16) < (1 << (256 - required_bits))
 
 
 @dataclass

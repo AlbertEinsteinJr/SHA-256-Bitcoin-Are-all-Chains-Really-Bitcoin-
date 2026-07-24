@@ -140,12 +140,13 @@ class TestMineBlock:
 class TestDifficultyDefects:
     """Defect reproductions for difficulty semantics."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="I-2: difficulty_target is silently quantized to 4-bit multiples by //4, "
-        "so targets 8,9,10,11 behave identically",
-    )
     def test_difficulty_target_is_bit_precise(self):
+        """I-2 (FIXED): difficulty is counted in bits, not rounded to nibbles.
+
+        `difficulty_target // 4` previously rounded down, so targets of 8, 9,
+        10 and 11 bits all demanded the same two leading hex zeros. The
+        comparison is now bit-exact.
+        """
         """
         difficulty_target is documented as leading zero *bits*.
 
