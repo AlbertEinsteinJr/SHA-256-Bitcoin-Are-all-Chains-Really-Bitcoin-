@@ -197,18 +197,21 @@ class TestInputValidation:
         assert sha256(bytearray(b"abc")) == expected
         assert expected == NIST_ABC
 
-    def test_bytearray_input_is_mutated_in_place(self):
-        """Observed behaviour: padding is appended to the caller's bytearray.
+    def test_bytearray_input_is_not_mutated(self):
+        """A bytearray argument is treated as read-only.
 
-        sha256() pads via ``message += ...``, which mutates a bytearray in
-        place rather than rebinding a copy. This documents the side effect
-        as it currently exists -- it is not an endorsement of it.
+        This test previously documented the opposite: padding was applied with
+        ``message += ...``, which rebinds for bytes but mutates in place for
+        bytearray, leaving the caller holding a 64-byte padded buffer. The
+        first digest was still correct, so only a *second* hash of the same
+        buffer revealed the corruption. Fixed in _pad_message; see
+        tests/test_robustness.py for the full boundary sweep.
         """
         buf = bytearray(b"abc")
-        sha256(buf)
-        assert len(buf) == 64
-        assert bytes(buf) != b"abc"
-        assert bytes(buf).startswith(b"abc\x80")
+        digest = sha256(buf)
+        assert bytes(buf) == b"abc"
+        assert len(buf) == 3
+        assert digest == sha256(buf)
 
     def test_memoryview_input_raises_type_error(self):
         """Observed behaviour: memoryview is rejected, not accepted."""

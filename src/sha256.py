@@ -42,20 +42,22 @@ def _right_rotate(value, amount):
 
 
 def _pad_message(message: bytes) -> bytes:
-    """Pad the message to a multiple of 512 bits (64 bytes) per FIPS 180-4."""
+    """
+    Pad the message to a multiple of 512 bits (64 bytes) per FIPS 180-4.
+
+    Builds a new bytes object rather than appending to *message*. ``+=`` is a
+    rebind for bytes but an in-place mutation for bytearray, and sha256()
+    accepts bytearray -- so the previous version silently destroyed the
+    caller's buffer and returned a different digest on any later re-hash.
+    """
     length = len(message)
     bit_length = length * 8
 
-    # Append bit '1' (0x80 byte)
-    message += b"\x80"
+    # Append bit '1' (0x80 byte), then zeros until the length is 56 mod 64,
+    # then the original length in bits as a 64-bit big-endian integer.
+    padding = b"\x80" + b"\x00" * ((55 - length) % 64)
 
-    # Append zeros until message length is 56 mod 64
-    message += b"\x00" * ((56 - (length + 1) % 64) % 64)
-
-    # Append original length in bits as 64-bit big-endian
-    message += struct.pack(">Q", bit_length)
-
-    return message
+    return bytes(message) + padding + struct.pack(">Q", bit_length)
 
 
 def sha256(data: bytes) -> str:
@@ -103,7 +105,7 @@ def sha256(data: bytes) -> str:
             s1 = (
                 _right_rotate(e, 6) ^ _right_rotate(e, 11) ^ _right_rotate(e, 25)
             )
-            ch = (e & f) ^ (~e & g) & 0xFFFFFFFF
+            ch = ((e & f) ^ (~e & g)) & 0xFFFFFFFF
             temp1 = (hh + s1 + ch + K[i] + w[i]) & 0xFFFFFFFF
             s0 = (
                 _right_rotate(a, 2) ^ _right_rotate(a, 13) ^ _right_rotate(a, 22)

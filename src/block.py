@@ -35,6 +35,30 @@ class BlockHeader:
             + struct.pack("<I", self.nonce)
         )
 
+    def is_well_formed(self) -> bool:
+        """
+        Report whether this header can be serialized at all.
+
+        A malformed header is an *invalid block*, not an exception. Without
+        this guard, `serialize()` raises ValueError out of `bytes.fromhex()`
+        on any header carrying non-hex or wrong-length hash fields -- so a
+        validator walking attacker-supplied blocks crashes instead of
+        rejecting them, which is a denial of service rather than a rejection.
+        """
+        for hash_field in (self.prev_block_hash, self.merkle_root):
+            if not isinstance(hash_field, str) or len(hash_field) != 64:
+                return False
+            try:
+                bytes.fromhex(hash_field)
+            except ValueError:
+                return False
+
+        for number in (self.version, self.timestamp, self.difficulty_target, self.nonce):
+            if not isinstance(number, int) or not 0 <= number <= 0xFFFFFFFF:
+                return False
+
+        return True
+
     def compute_hash(self) -> str:
         """Compute the double-SHA-256 hash of this block header."""
         return double_sha256(self.serialize())

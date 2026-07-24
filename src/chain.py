@@ -94,6 +94,12 @@ class Blockchain:
         for i in range(len(self.chain)):
             block = self.chain[i]
 
+            # Reject structurally malformed headers before touching them.
+            # Hashing one raises ValueError, which would crash the validator
+            # on hostile input instead of rejecting the block.
+            if not block.header.is_well_formed():
+                return False
+
             # Check proof-of-work
             if not block.header.meets_difficulty():
                 return False
