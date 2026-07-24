@@ -94,8 +94,25 @@ class Blockchain:
         for i in range(len(self.chain)):
             block = self.chain[i]
 
-            # Check proof-of-work
-            if not block.header.meets_difficulty():
+            # Reject structurally malformed headers before touching them.
+            # Hashing one raises ValueError, which would crash the validator
+            # on hostile input instead of rejecting the block.
+            if not block.header.is_well_formed():
+                return False
+
+            # Check proof-of-work against the CHAIN's policy, never against
+            # the block's own declared difficulty_target -- that field is
+            # supplied by whoever produced the block, so trusting it lets a
+            # forged block declare difficulty_target=0 and satisfy the check
+            # with no work at all.
+            #
+            # Equality rather than >=: a block declaring a *harder* target
+            # than policy would still be unspendable work, but compare_chains
+            # ranks by length rather than cumulative work, so admitting mixed
+            # targets would let a short hard chain tie a long easy one.
+            if block.header.difficulty_target != self.difficulty:
+                return False
+            if not block.header.meets_difficulty(self.difficulty):
                 return False
 
             # Check Merkle root

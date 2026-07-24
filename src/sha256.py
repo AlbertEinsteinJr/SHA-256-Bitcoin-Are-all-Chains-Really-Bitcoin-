@@ -42,20 +42,93 @@ def _right_rotate(value, amount):
 
 
 def _pad_message(message: bytes) -> bytes:
-    """Pad the message to a multiple of 512 bits (64 bytes) per FIPS 180-4."""
+    """
+    Pad the message to a multiple of 512 bits (64 bytes) per FIPS 180-4.
+
+    Builds a new bytes object rather than appending to *message*. ``+=`` is a
+    rebind for bytes but an in-place mutation for bytearray, and sha256()
+    accepts bytearray -- so the previous version silently destroyed the
+    caller's buffer and returned a different digest on any later re-hash.
+    """
     length = len(message)
     bit_length = length * 8
 
-    # Append bit '1' (0x80 byte)
-    message += b"\x80"
+    # Append bit '1' (0x80 byte), then zeros until the length is 56 mod 64,
+    # then the original length in bits as a 64-bit big-endian integer.
+    padding = b"\x80" + b"\x00" * ((55 - length) % 64)
 
-    # Append zeros until message length is 56 mod 64
-    message += b"\x00" * ((56 - (length + 1) % 64) % 64)
+    return bytes(message) + padding + struct.pack(">Q", bit_length)
 
-    # Append original length in bits as 64-bit big-endian
-    message += struct.pack(">Q", bit_length)
 
-    return message
+def _compress(h, block: bytes):
+    """
+    Compress one 512-bit *block* into the eight-word state *h*.
+
+    This is the compression function of FIPS 180-4 section 6.2. It is a
+    separate function so that a caller can resume hashing from a
+    partially-computed state instead of re-processing a message prefix that
+    never changes -- see :func:`sha256_midstate`.
+
+    Returns a new state; *h* is not modified.
+    """
+    w = list(struct.unpack(">16I", block))
+
+    # Extend the sixteen 32-bit words into sixty-four 32-bit words
+    for i in range(16, 64):
+        s0 = (
+            _right_rotate(w[i - 15], 7)
+            ^ _right_rotate(w[i - 15], 18)
+            ^ (w[i - 15] >> 3)
+        )
+        s1 = (
+            _right_rotate(w[i - 2], 17)
+            ^ _right_rotate(w[i - 2], 19)
+            ^ (w[i - 2] >> 10)
+        )
+        w.append((w[i - 16] + s0 + w[i - 7] + s1) & 0xFFFFFFFF)
+
+    a, b, c, d, e, f, g, hh = h
+
+    for i in range(64):
+        s1 = _right_rotate(e, 6) ^ _right_rotate(e, 11) ^ _right_rotate(e, 25)
+        ch = ((e & f) ^ (~e & g)) & 0xFFFFFFFF
+        temp1 = (hh + s1 + ch + K[i] + w[i]) & 0xFFFFFFFF
+        s0 = _right_rotate(a, 2) ^ _right_rotate(a, 13) ^ _right_rotate(a, 22)
+        maj = (a & b) ^ (a & c) ^ (b & c)
+        temp2 = (s0 + maj) & 0xFFFFFFFF
+
+        hh = g
+        g = f
+        f = e
+        e = (d + temp1) & 0xFFFFFFFF
+        d = c
+        c = b
+        b = a
+        a = (temp1 + temp2) & 0xFFFFFFFF
+
+    return [(x + y) & 0xFFFFFFFF for x, y in zip(h, (a, b, c, d, e, f, g, hh))]
+
+
+def sha256_midstate(prefix: bytes):
+    """
+    Compress a whole number of 64-byte blocks and return the resulting state.
+
+    The result is a *midstate*: hashing may be resumed from it for any message
+    that begins with *prefix*, without re-processing that prefix.
+
+    This is what makes Bitcoin mining tractable. A block header is 80 bytes,
+    which pads to exactly two 64-byte blocks, and the nonce lives at bytes
+    76..79 -- entirely inside the second block. So the first block's
+    compression is identical for every nonce a miner tries, and computing it
+    once instead of billions of times removes a third of the work per attempt.
+    """
+    if len(prefix) % 64:
+        raise ValueError("midstate prefix must be a whole number of 64-byte blocks")
+
+    h = list(H_INIT)
+    for start in range(0, len(prefix), 64):
+        h = _compress(h, prefix[start : start + 64])
+    return h
 
 
 def sha256(data: bytes) -> str:
@@ -77,51 +150,8 @@ def sha256(data: bytes) -> str:
 
     padded = _pad_message(data)
     h = list(H_INIT)
-
-    # Process each 512-bit (64-byte) block
-    for block_start in range(0, len(padded), 64):
-        block = padded[block_start : block_start + 64]
-        w = list(struct.unpack(">16I", block))
-
-        # Extend the sixteen 32-bit words into sixty-four 32-bit words
-        for i in range(16, 64):
-            s0 = (
-                _right_rotate(w[i - 15], 7)
-                ^ _right_rotate(w[i - 15], 18)
-                ^ (w[i - 15] >> 3)
-            )
-            s1 = (
-                _right_rotate(w[i - 2], 17)
-                ^ _right_rotate(w[i - 2], 19)
-                ^ (w[i - 2] >> 10)
-            )
-            w.append((w[i - 16] + s0 + w[i - 7] + s1) & 0xFFFFFFFF)
-
-        a, b, c, d, e, f, g, hh = h
-
-        for i in range(64):
-            s1 = (
-                _right_rotate(e, 6) ^ _right_rotate(e, 11) ^ _right_rotate(e, 25)
-            )
-            ch = (e & f) ^ (~e & g) & 0xFFFFFFFF
-            temp1 = (hh + s1 + ch + K[i] + w[i]) & 0xFFFFFFFF
-            s0 = (
-                _right_rotate(a, 2) ^ _right_rotate(a, 13) ^ _right_rotate(a, 22)
-            )
-            maj = (a & b) ^ (a & c) ^ (b & c)
-            temp2 = (s0 + maj) & 0xFFFFFFFF
-
-            hh = g
-            g = f
-            f = e
-            e = (d + temp1) & 0xFFFFFFFF
-            d = c
-            c = b
-            b = a
-            a = (temp1 + temp2) & 0xFFFFFFFF
-
-        for i in range(8):
-            h[i] = (h[i] + [a, b, c, d, e, f, g, hh][i]) & 0xFFFFFFFF
+    for start in range(0, len(padded), 64):
+        h = _compress(h, padded[start : start + 64])
 
     return "".join(f"{v:08x}" for v in h)
 

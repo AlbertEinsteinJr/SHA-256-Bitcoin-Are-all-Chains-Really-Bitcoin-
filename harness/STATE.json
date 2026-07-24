@@ -1,0 +1,187 @@
+{
+  "run_id": "harness-v2-test-verify-improve-optimize",
+  "current_phase": "P8",
+  "unverified_step_count": 0,
+  "units": [
+    {
+      "id": "U-0",
+      "title": "harness scaffold: SPEC/RECON/STATE",
+      "pass_condition_ref": "PC-3",
+      "path": "write",
+      "status": "verified",
+      "evidence_ref": "harness/RECON.md",
+      "attempts": 1
+    },
+    {
+      "id": "U-1",
+      "title": "tests/test_sha256_vectors.py",
+      "pass_condition_ref": "PC-1",
+      "path": "read",
+      "status": "verified",
+      "evidence_ref": "e50f284",
+      "attempts": 1
+    },
+    {
+      "id": "U-2",
+      "title": "tests/test_merkle.py",
+      "pass_condition_ref": "PC-3",
+      "path": "read",
+      "status": "verified",
+      "evidence_ref": "e50f284",
+      "attempts": 1
+    },
+    {
+      "id": "U-3",
+      "title": "tests/test_header.py",
+      "pass_condition_ref": "PC-3",
+      "path": "read",
+      "status": "verified",
+      "evidence_ref": "e50f284",
+      "attempts": 1
+    },
+    {
+      "id": "U-4",
+      "title": "tests/test_chain_validation.py",
+      "pass_condition_ref": "PC-5",
+      "path": "read",
+      "status": "verified",
+      "evidence_ref": "e50f284",
+      "attempts": 1
+    },
+    {
+      "id": "U-5",
+      "title": "tests/test_integration.py",
+      "pass_condition_ref": "PC-3",
+      "path": "read",
+      "status": "verified",
+      "evidence_ref": "e50f284",
+      "attempts": 1
+    },
+    {
+      "id": "U-6",
+      "title": "coverage floor + mutate.py + freeze golden digests",
+      "pass_condition_ref": "PC-4",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    },
+    {
+      "id": "U-7",
+      "title": "I-1 fix: validate difficulty against chain policy",
+      "pass_condition_ref": "PC-5",
+      "path": "write",
+      "status": "verified",
+      "evidence_ref": "23935c6",
+      "attempts": 1
+    },
+    {
+      "id": "U-8",
+      "title": "I-3 fix: genesis must not append unmined",
+      "pass_condition_ref": "PC-3",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    },
+    {
+      "id": "U-9",
+      "title": "I-2 fix: difficulty quantization",
+      "pass_condition_ref": "PC-3",
+      "path": "write",
+      "status": "verified",
+      "evidence_ref": "23935c6",
+      "attempts": 1
+    },
+    {
+      "id": "U-10",
+      "title": "I-4 fix: mine_block purity, no dirty nonce",
+      "pass_condition_ref": "PC-3",
+      "path": "write",
+      "status": "verified",
+      "evidence_ref": "a68d3b6",
+      "attempts": 1
+    },
+    {
+      "id": "U-11",
+      "title": "I-5 fix: deterministic tx_id then include in serialize",
+      "pass_condition_ref": "PC-6",
+      "path": "write",
+      "status": "blocked",
+      "evidence_ref": "deferred: needs deterministic tx_id first (see PROGRESS.md)",
+      "attempts": 0
+    },
+    {
+      "id": "U-12",
+      "title": "I-6 fix: timestamp monotonicity",
+      "pass_condition_ref": "PC-3",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    },
+    {
+      "id": "U-13",
+      "title": "I-7: parenthesize ch in sha256.py",
+      "pass_condition_ref": "PC-2",
+      "path": "write",
+      "status": "verified",
+      "evidence_ref": "887ecec",
+      "attempts": 1
+    },
+    {
+      "id": "U-14",
+      "title": "I-8: document Merkle deviation from Bitcoin",
+      "pass_condition_ref": "PC-3",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    },
+    {
+      "id": "U-15",
+      "title": "re-baseline validation outcomes + bench baseline",
+      "pass_condition_ref": "PC-7",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    },
+    {
+      "id": "U-16",
+      "title": "O-3 midstate: hoist nonce-invariant block 1",
+      "pass_condition_ref": "PC-7",
+      "path": "write",
+      "status": "verified",
+      "evidence_ref": "a68d3b6",
+      "attempts": 1
+    },
+    {
+      "id": "U-17",
+      "title": "O-4 compression-loop micro-optimizations",
+      "pass_condition_ref": "PC-7",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    },
+    {
+      "id": "U-18",
+      "title": "O-1 internal _sha256_digest returning bytes",
+      "pass_condition_ref": "PC-7",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    },
+    {
+      "id": "U-19",
+      "title": "O-5 meets_difficulty compares digest bytes",
+      "pass_condition_ref": "PC-7",
+      "path": "write",
+      "status": "pending",
+      "evidence_ref": null,
+      "attempts": 0
+    }
+  ]
+}
