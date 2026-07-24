@@ -224,7 +224,11 @@ class TestTamperDetection:
         target.transactions[0].amount += 1.0
         target.header.merkle_root = target.compute_merkle_root()
         target.header.nonce = 0
-        assert mine_block(target.header) is not None
+        # mine_block returns a NEW header rather than mutating this one, so the
+        # result has to be assigned back; relying on in-place mutation was I-4.
+        remined = mine_block(target.header)
+        assert remined is not None
+        target.header = remined
 
         # Merkle root and proof-of-work now pass in isolation...
         assert target.validate_merkle_root() is True

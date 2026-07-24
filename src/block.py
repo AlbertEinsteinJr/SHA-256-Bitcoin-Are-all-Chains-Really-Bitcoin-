@@ -7,10 +7,17 @@ demonstrating how SHA-256 proof-of-work secures the blockchain.
 
 import struct
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import List, Optional
 
-from .sha256 import double_sha256, sha256
+from .sha256 import (
+    H_INIT,
+    _compress,
+    _pad_message,
+    double_sha256,
+    sha256,
+    sha256_midstate,
+)
 
 
 @dataclass
@@ -143,6 +150,54 @@ class Block:
         return self.compute_merkle_root() == self.header.merkle_root
 
 
+# A block header is 80 bytes, which pads to exactly two 64-byte compression
+# blocks. The nonce occupies bytes 76..79 -- entirely inside the second block --
+# so the first block's compression is identical for every nonce tried.
+_HEADER_PADDED_LEN = 128
+_NONCE_OFFSET_IN_TAIL = 76 - 64
+
+# The second SHA-256 of a double-SHA always hashes exactly 32 bytes, so its
+# padding block is a constant: 0x80, then zeros, then the length (256 bits).
+_SECOND_HASH_PAD = b"\x80" + b"\x00" * 23 + struct.pack(">Q", 256)
+
+
+def _mine_search(header: BlockHeader, max_nonce: int) -> Optional[int]:
+    """
+    Search for a nonce satisfying *header*'s declared difficulty target.
+
+    Hashing the whole 80-byte header per attempt costs three compression
+    blocks: two for the padded header, one for the second SHA-256. Because
+    the nonce lives entirely in the header's second block, the first block's
+    compression can be hoisted out of the loop, leaving two -- which is the
+    same trick real Bitcoin miners use.
+
+    Returns the winning nonce, or None if the budget is exhausted.
+    """
+    required = header.difficulty_target
+    if required > 256:
+        return None
+    limit = (1 << (256 - required)) if required > 0 else (1 << 256)
+
+    padded = _pad_message(header.serialize())
+    if len(padded) != _HEADER_PADDED_LEN:  # pragma: no cover - layout guard
+        raise RuntimeError(
+            f"header padded to {len(padded)} bytes, expected {_HEADER_PADDED_LEN}; "
+            "the midstate split assumes an 80-byte header"
+        )
+
+    midstate = sha256_midstate(padded[:64])
+    tail = bytearray(padded[64:])
+    offset = _NONCE_OFFSET_IN_TAIL
+
+    for nonce in range(min(max_nonce, 1 << 32)):
+        tail[offset : offset + 4] = struct.pack("<I", nonce)
+        first = struct.pack(">8I", *_compress(midstate, bytes(tail)))
+        digest = struct.pack(">8I", *_compress(H_INIT, first + _SECOND_HASH_PAD))
+        if int.from_bytes(digest, "big") < limit:
+            return nonce
+    return None
+
+
 def mine_block(header: BlockHeader, max_nonce: int = 2**32) -> Optional[BlockHeader]:
     """
     Attempt to find a nonce that makes the header hash meet difficulty.
@@ -150,17 +205,27 @@ def mine_block(header: BlockHeader, max_nonce: int = 2**32) -> Optional[BlockHea
     Parameters
     ----------
     header : BlockHeader
-        The block header to mine (nonce will be mutated).
+        The block header to mine. It is **not** modified.
     max_nonce : int
         Maximum nonce value to try before giving up.
 
     Returns
     -------
     Optional[BlockHeader]
-        The header with a valid nonce, or None if not found.
+        A new header carrying a valid nonce, or None if none was found.
     """
-    for nonce in range(max_nonce):
-        header.nonce = nonce
-        if header.meets_difficulty():
-            return header
-    return None
+    nonce = _mine_search(header, max_nonce)
+    if nonce is None:
+        return None
+
+    mined = replace(header, nonce=nonce)
+
+    # Cross-check the midstate fast path against the plain reference hash.
+    # A midstate or endianness slip would otherwise emit silently invalid
+    # blocks; this turns that whole class of bug into an immediate, loud
+    # failure for the cost of one extra hash per mined block.
+    if not mined.meets_difficulty(header.difficulty_target):
+        raise RuntimeError(  # pragma: no cover - guards against a coding slip
+            "midstate miner disagreed with the reference hash"
+        )
+    return mined

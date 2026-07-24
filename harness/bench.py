@@ -33,7 +33,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.block import BlockHeader  # noqa: E402
+from src.block import BlockHeader, _mine_search  # noqa: E402
 from src.sha256 import double_sha256, sha256  # noqa: E402
 
 BASELINE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bench_baseline.json")
@@ -70,11 +70,21 @@ def _w_double_sha256(n=1500):
         double_sha256(_PAYLOAD_80)
 
 
+def _w_mine_search(n=1500):
+    """The optimized mining loop. difficulty_target=256 is never satisfied, so
+    exactly *n* attempts run -- fixed work, directly comparable to dsha_header,
+    which is the same job done the old way (three compression blocks per
+    attempt instead of two)."""
+    probe = BlockHeader(1, "00" * 32, "aa" * 32, 1231006505, 256, 0)
+    _mine_search(probe, n)
+
+
 WORKLOADS = {
     "sha256_1blk": (_w_sha256_1blk, 2000),
     "sha256_2blk": (_w_sha256_2blk, 1500),
     "dsha_header": (_w_dsha_header, 1500),
     "double_sha256": (_w_double_sha256, 1500),
+    "mine_search": (_w_mine_search, 1500),
 }
 
 
@@ -143,6 +153,16 @@ def compare(data: dict) -> int:
             verdict = f"REGRESSION {ratio:.2f}x"
             regressed = True
         print(f"  {name:16s} {b:10.0f}  {c:10.0f}   {ratio:5.2f}x   {verdict}")
+
+    old = data["results"].get("dsha_header")
+    new = data["results"].get("mine_search")
+    if old and new:
+        ratio = new["ops_per_sec"] / old["ops_per_sec"]
+        print(f"\n  mining path, measured in THIS run (drift-immune):")
+        print(f"    old (compute_hash per nonce, 3 blocks) {old['ops_per_sec']:8.0f} attempts/s")
+        print(f"    new (midstate mining,        2 blocks) {new['ops_per_sec']:8.0f} attempts/s")
+        print(f"    speedup {ratio:.2f}x  (PC-7 requires >=1.40x)  "
+              f"{'PASS' if ratio >= 1.40 else 'FAIL'}")
 
     if regressed:
         print("\nFAIL: at least one workload regressed beyond the noise gate.")

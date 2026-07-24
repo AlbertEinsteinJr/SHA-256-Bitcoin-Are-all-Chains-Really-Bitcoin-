@@ -168,12 +168,12 @@ class TestDifficultyDefects:
 class TestMiningDefects:
     """Defect reproductions for mine_block() side effects."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="I-4: mine_block mutates the caller's header in place, returns the same "
-        "object, and leaves a dirty nonce on failure",
-    )
     def test_mine_block_does_not_mutate_caller_header(self):
+        """I-4 (FIXED): mining returns a new header and leaves the input alone.
+
+        mine_block used to assign into the caller's header on every attempt,
+        return that same object, and leave a dirty nonce behind on failure.
+        """
         """Mining should return a new header and leave the caller's untouched."""
         header = make_header(difficulty_target=4, nonce=0)
         result = mine_block(header, max_nonce=10_000)
