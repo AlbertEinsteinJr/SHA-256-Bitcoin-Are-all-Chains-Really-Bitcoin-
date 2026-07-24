@@ -1,0 +1,80 @@
+{
+  "objective": "Test, verify, improve and optimize the SHA-256 blockchain implementation under Master Harness Prompt v2.",
+  "classification": {
+    "shape": "mixed",
+    "reversible": true,
+    "touches_hard_floor": false
+  },
+  "pass_conditions": [
+    {
+      "id": "PC-1",
+      "statement": "sha256() reproduces the published NIST FIPS 180-4 test vectors.",
+      "verification": "python3 -m pytest tests/test_sha256_vectors.py -q",
+      "tier": "T3",
+      "status": "pending"
+    },
+    {
+      "id": "PC-2",
+      "statement": "sha256() agrees byte-for-byte with hashlib.sha256 across padding boundaries and randomized inputs.",
+      "verification": "python3 -m pytest tests/test_sha256_vectors.py -k differential -q",
+      "tier": "T4",
+      "status": "pending"
+    },
+    {
+      "id": "PC-3",
+      "statement": "Branch coverage is at least 95 percent for every module in src/.",
+      "verification": "python3 -m pytest tests/ --cov=src --cov-branch --cov-fail-under=95 -q",
+      "tier": "T3",
+      "status": "pending"
+    },
+    {
+      "id": "PC-4",
+      "statement": "The test suite detects every seeded mutant; zero mutants survive.",
+      "verification": "python3 harness/mutate.py",
+      "tier": "T4",
+      "status": "pending"
+    },
+    {
+      "id": "PC-5",
+      "statement": "A block whose difficulty_target is forged below the chain policy is rejected by validate_chain().",
+      "verification": "python3 -m pytest tests/ -k forged_difficulty -q",
+      "tier": "T4",
+      "status": "pending"
+    },
+    {
+      "id": "PC-6",
+      "statement": "Optimization changes speed only: all frozen digests remain byte-identical.",
+      "verification": "python3 harness/golden_check.py",
+      "tier": "T4",
+      "status": "pending"
+    },
+    {
+      "id": "PC-7",
+      "statement": "Mining throughput is at least 2x the measured baseline of ~2400 nonces/sec.",
+      "verification": "python3 harness/bench.py --compare",
+      "tier": "T3",
+      "status": "pending"
+    }
+  ],
+  "boundaries": {
+    "read_allowed": ["src/**", "tests/**", "harness/**", "*.md", "requirements.txt"],
+    "write_allowed": ["src/**", "tests/**", "harness/**", "docs/**", "TEST_COVERAGE_ANALYSIS.md"],
+    "forbidden": [
+      "importing hashlib anywhere inside src/",
+      ".github/** (operator chose local verification only)",
+      "force-push or history rewrite on any branch",
+      "changing the Merkle hex-string/single-SHA algorithm (documented deviation, I-8)"
+    ]
+  },
+  "budget": {
+    "max_unverified_steps": 3,
+    "max_total_steps": 250,
+    "max_tokens": null,
+    "max_wall_clock_min": null
+  },
+  "requires_operator_approval": [
+    "any deletion",
+    "any production mutation",
+    "any irreversible action not listed above"
+  ]
+}
