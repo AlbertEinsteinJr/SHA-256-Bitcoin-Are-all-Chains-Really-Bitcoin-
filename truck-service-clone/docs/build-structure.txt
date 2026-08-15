@@ -1,0 +1,98 @@
+Roadside Directory — annotated build structure
+(clean-room Expo React Native clone; see ../BUILD_STRUCTURE_DISSECTION.md)
+
+truck-service-clone/
+├── app.config.ts .............. Expo manifest — generates BOTH native shells from one file
+│                                (min iOS 16.4 / Android API 24, Maps keys, permissions,
+│                                 Firebase + Sentry plugins, EAS OTA channel)
+├── package.json ............... the exact library fingerprint of the real build
+├── eas.json ................... cloud build/submit profiles (dev / preview / production app-bundle)
+├── tsconfig.json / babel.config.js / metro.config.js .. TS paths, RN presets, Sentry source maps
+├── index.js ................... registerRootComponent(App)
+├── .env.example ............... per-env secrets (Maps keys, API base, Sentry DSN)
+│
+├── docs/
+│   ├── ARCHITECTURE.md ........ layers, state split, offline data flow, nav graph
+│   ├── api-contract.md ........ the serverless REST contract the services target
+│   └── build-structure.txt .... (this file)
+│
+└── src/
+    ├── App.tsx ................ provider tree: gesture → safe-area → react-query → navigation
+    │                            (Sentry.wrap around the whole app)
+    │
+    ├── config/
+    │   ├── env.ts ............. typed accessor over app.config `extra`
+    │   └── endpoints.ts ....... single map of every backend path
+    │
+    ├── theme/
+    │   ├── tokens.ts .......... light+dark palettes, spacing, radius, type scale
+    │   └── index.ts ........... useTheme() — components never hardcode a color
+    │
+    ├── models/ ................ Zod schema = TypeScript type = runtime validator (one source)
+    │   ├── vendor.ts .......... Vendor + ListingTier (free…premium) + authorizedVendor
+    │   ├── category.ts ........ ServiceType taxonomy (repair/tow/tire/reefer/stop/wash…)
+    │   ├── rating.ts .......... public star review (optimistic, pendingSync)
+    │   ├── rate.ts ............ PRIVATE per-vendor price card (labor/after-hours/call fee)
+    │   ├── repair.ts .......... RepairTicket = append-only update log ("Start Repair")
+    │   ├── user.ts ............ User/AccountType + Session (app JWT)
+    │   ├── fleet.ts ........... Fleet + Truck
+    │   ├── location.ts ........ Coordinate/Region/Address (+ interstateMarker)
+    │   └── index.ts ........... barrel
+    │
+    ├── navigation/
+    │   ├── types.ts ........... typed param lists (routing is fully type-checked)
+    │   ├── RootNavigator.tsx .. auth-status switch; holds splash during session restore
+    │   ├── AuthStack.tsx ...... Onboarding → SignIn → Register
+    │   ├── AppTabs.tsx ........ Search · Map · Saved · Repairs · Account
+    │   ├── SearchStack.tsx .... SearchHome → Results → VendorDetail
+    │   └── RepairsStack.tsx ... RepairsList → StartRepair(modal) → RepairTicket
+    │
+    ├── services/ ............... cross-cutting side-effect layer
+    │   ├── apiClient.ts ....... one axios instance: JWT attach, 401 refresh-retry, Zod-validate
+    │   ├── auth.ts ............ Firebase auth → exchange ID token for app JWT → SecureStore
+    │   ├── sync.ts ............ push pending writes + pull /me/sync delta (offline reconciler)
+    │   ├── location.ts ........ expo-location → Coordinate
+    │   ├── analytics.ts ....... Firebase Analytics wrapper (fail-safe)
+    │   ├── crashReporting.ts .. Sentry wrapper (fail-safe)
+    │   └── storage.ts ......... SecureStore (secrets) + AsyncStorage (JSON)
+    │
+    ├── data/ ................... offline-first persistence
+    │   ├── db.ts .............. expo-sqlite record store + outbound sync queue (pending flag)
+    │   └── repositories/
+    │       ├── vendorRepository.ts .. search/getById/categories; falls back to cache offline
+    │       └── repairRepository.ts .. optimistic create/addUpdate → db → best-effort sync
+    │
+    ├── store/ ................. STATE = two tools
+    │   ├── queryClient.ts ..... react-query: server state (search, detail, categories, repairs)
+    │   ├── authStore.ts ....... zustand: session/auth status
+    │   ├── searchStore.ts ..... zustand: active filters + map region
+    │   └── index.ts
+    │
+    ├── hooks/ ................. screens' only data access
+    │   ├── useAuth.ts ......... selects auth slice
+    │   ├── useLocation.ts ..... current position → seeds map region + searches
+    │   ├── useNearbyVendors.ts  infinite query keyed off live filters
+    │   └── useRepairs.ts ...... list / one / create (mutation invalidates cache)
+    │
+    ├── components/ ............ presentational only (props + useTheme)
+    │   ├── VendorCard.tsx ..... renders the tier badge = the monetization model
+    │   ├── VendorList.tsx ..... FlatList + paging + empty state
+    │   ├── CategoryGrid.tsx ... category tiles → serviceType
+    │   ├── RatingStars.tsx .... read-only or interactive ★
+    │   ├── RateTracker.tsx .... private price-card form
+    │   ├── RepairTicketCard.tsx  status pill (safety color for en_route/in_progress)
+    │   └── MapMarker.tsx ...... Marker colored by service type + Callout
+    │
+    └── screens/
+        ├── onboarding/OnboardingScreen.tsx
+        ├── auth/{SignInScreen,RegisterScreen}.tsx ..... auth gates the sync features
+        ├── search/SearchHomeScreen.tsx ................ category grid + "use my location"
+        ├── search/ResultsScreen.tsx ................... filters + VendorList
+        ├── search/VendorDetailScreen.tsx .............. call/directions, rating, rate, start-repair
+        ├── map/MapScreen.tsx .......................... MapView + markers, region write-back
+        ├── saved/SavedScreen.tsx ...................... Favorites | Private locations
+        ├── repairs/RepairsListScreen.tsx
+        ├── repairs/StartRepairScreen.tsx
+        ├── repairs/RepairTicketScreen.tsx ............. shared fleet update timeline
+        ├── account/AccountScreen.tsx
+        └── feedback/FeedbackScreen.tsx ................ in-app feedback (new in 7.0.6)
