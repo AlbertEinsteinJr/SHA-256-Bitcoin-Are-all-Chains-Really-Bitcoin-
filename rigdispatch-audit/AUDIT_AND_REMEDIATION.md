@@ -1,5 +1,11 @@
 # RigDispatch / RoadService.App — Audit & Launch-Hardening Record
 
+> **ℹ️ HISTORICAL (2026-06-03), scope changed 2026-08-18.** The database hardening recorded here
+> remains applied and valid. But the system map and priority items describe the dispatch
+> marketplace, which has since been **removed from the release scope** — see
+> `LAUNCH_HARNESS_EXECUTION_2026-08-18.md`. In particular, do not act on items #7/#8
+> (payment-branch deploy, work-order flag).
+
 **Date:** 2026-06-03
 **Supabase project:** `rlxgltbiotpmtmfxlfht` ("albertsroadservice's Project")
 **Vercel team:** `albertsroadservices-projects` (`team_2BstI1BjhxBYRswaG6TtOLT2`)

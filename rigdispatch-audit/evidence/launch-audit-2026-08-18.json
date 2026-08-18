@@ -1,0 +1,895 @@
+{
+  "summary": "Parallel audit: Base44 scope-correction verification, live public-surface dispatch-language sweep, retired hosts, Vercel cohort",
+  "agentCount": 5,
+  "logs": [],
+  "result": {
+    "base44": {
+      "summary": "Scope-correction audit of Base44 app 6a8076afba92840995f8e8ec verified 11 of 12 claims pass with concrete evidence; claim 10 is a warn because package.json has no test framework but does contain two \"test:*\"-named node verification scripts. Routes, nav, footers, onboarding, legal pages, and the public vendor profile are clean of repair/fleet/dispatch functionality; all five retired backend functions return 410; RepairTicket/TicketUpdate entities are preserved; the public-listing projection enforces an exact-key contract that excludes every private field checked; the residual-language sweep found only closed-write-path stubs, deletion/purge code, a Terms disclaimer, and vendor-attribute strings (\"24/7 dispatch\" amenity, \"per dispatch\" fee unit, \"dispatcher\" account type) that do not imply app-coordinated dispatch. No other live coordinated-roadside functionality was found; the only adjacent live feature is the Authorized Vendor net-30 badge program (src/pages/AuthorizedVendor.jsx), which is direct-pay signaling, not coordination.",
+      "checks": [
+        {
+          "item": "1. /repairs routes removed; no repairs page component routed",
+          "status": "pass",
+          "evidence": "src/App.jsx routes (lines 89-135) contain no /repairs or /repairs/:id; lazy-import list (lines 21-48) has no Repairs/RepairTicketDetail; src/pages/ contains no Repairs*.jsx (directory listing); src/lib/privateSurface.js OPERATIONAL_PATHS (lines 16-22) allowlists only /business, /saved, /settings, /ops, /admin."
+        },
+        {
+          "item": "2. 'Repairs' absent from desktop header, mobile bottom nav, both footers, Settings",
+          "status": "pass",
+          "evidence": "src/components/AppLayout.jsx desktop nav (lines 26-36) and mobile nav (lines 56-65) show only Business Hub/Saved/Settings/Operations or Find Service/Browse/My Shop; src/components/Footer.jsx private variant (lines 13-20) and public variant (lines 34-42) have no Repairs link; src/pages/Settings.jsx has only Saved-vendors, delete-account, and admin sections. Note: Settings.jsx line 55 delete-confirmation mentions purging 'any legacy repair records tied to you' — a data-deletion disclosure, not a feature."
+        },
+        {
+          "item": "3. Public provider profile has no repair-request form",
+          "status": "pass",
+          "evidence": "src/pages/VendorDetail.jsx (all 174 lines read) renders call/directions/website buttons, claim-ownership box, favorite+note, rates, promos, and reviews only; imports (lines 1-23) include no StartRepairForm/StartTicketForm; no ticket or repair-request UI anywhere in the file."
+        },
+        {
+          "item": "4. Onboarding captures account type only, no fleet create/join",
+          "status": "pass",
+          "evidence": "src/components/Onboarding.jsx line 27 calls personalData({ action: 'set_account_type', accountType }) as the sole mutation; lines 7-10 comment documents removal of the fleet create/join step; ACCOUNT_TYPES (lines 11-16) is a 4-option self-description with no capability grant; no createFleet/joinFleet import exists in src/."
+        },
+        {
+          "item": "5. createTicket, addTicketUpdate, createFleet, joinFleet, verifyFleetCode all return 410",
+          "status": "pass",
+          "evidence": "base44/functions/createTicket/entry.ts lines 10-15, addTicketUpdate/entry.ts lines 10-15, createFleet/entry.ts lines 10-15, joinFleet/entry.ts lines 10-15 each return Response.json({error:...}, { status: 410 }); verifyFleetCode/entry.ts lines 3-5 returns { status: 410 } ('retired... enumeration risk')."
+        },
+        {
+          "item": "6. Terms and Privacy contain no repair-ticket / fleet-code / dispatch promises",
+          "status": "pass",
+          "evidence": "src/pages/Terms.jsx line 16 affirmatively disclaims: 'RoadService does not dispatch, assign, coordinate, or process payment for repair work — you contact and pay the service provider directly'; remaining sections (lines 17-36) cover accounts, claims, reviews, liability only. src/pages/Privacy.jsx (lines 12-35) covers accounts, location, providers, analytics, cookies, rate cards, reviews, retention — no ticket/fleet-code/dispatch content."
+        },
+        {
+          "item": "7. RepairTicket and TicketUpdate entities preserved in base44/entities/",
+          "status": "pass",
+          "evidence": "Directory listing shows base44/entities/RepairTicket.jsonc (1,533 bytes) and base44/entities/TicketUpdate.jsonc (1,140 bytes) both present; docs/FUTURE-SCOPE.md lines 48-52 confirms intentional preservation with zero records at removal time."
+        },
+        {
+          "item": "8. Tier prices $38/$78/$138 and Top Spot exclusivity copy present",
+          "status": "pass",
+          "evidence": "src/lib/tiers.js line 3 basic '$38/mo', line 4 priority '$78/mo', line 5 top_spot '$138/mo'; exclusivity copy at src/pages/ListYourBusiness.jsx:65: 'The #1 Spot is exclusive: one business per service category per city.'"
+        },
+        {
+          "item": "9. Public listing sync machinery exists; projection sends no private fields",
+          "status": "pass",
+          "evidence": "Entities present: base44/entities/PublicListingOutbox.jsonc, PublicListingSnapshot.jsonc, PublicListingReconcileRun.jsonc, PublicListingReconcilePage.jsonc, PublicListingReconcileItem.jsonc. Function dirs present: deliverPublicListingDeltas, reconcilePublicListings, exportPublicListings. base44/shared/publicListingProjection.ts builds the payload: assertPublicListingContract (exactObject, lines ~600-625) enforces an exact-key allowlist so any extra field is rejected. Fields sent: eventId, vendorId, sourceVersion, sourceUpdatedAt, operation, canonicalSlug, publicName, category, services, phone, description, website, imageUrl, promotions, placement{tier,rank,expiresAt}, hours, timezone, serviceMode, serviceArea{radiusMiles,label}, publicAddress{eligible,line1,city,state,postal}, safeMapCoordinates{lat,lng,kind}, trust{verification,authorized,ownerManaged,sponsored — booleans/expiries only}, rating{value,count,source,sourceUrl}, providerReportedRates{currency,laborRate,afterHoursRate,serviceCallFee}, ratesConfirmedAt. NOT present: owner email, Stripe customer/subscription IDs, claim tokens, admin/moderation notes, memberships. claimed_by_id/business_id are read only to derive the ownerManaged boolean, never emitted; address line1/postal and exact coordinates are emitted only when public_address_eligible and non-mobile, otherwise centroid rounded to 0.1 degree (contract-enforced 'private precision' checks)."
+        },
+        {
+          "item": "10. package.json has no test script and no test dependencies",
+          "status": "warn",
+          "evidence": "No 'test' script and no test-framework dependencies (no vitest/jest/playwright in dependencies or devDependencies) — the framework gap is real. However package.json scripts DO include 'test:billing-projection' and 'test:listing-submissions' (plain node runs of scripts/verify-*.mjs) plus 'verify:private-surface' and 'verify:release', so the claim 'NO test script' is not literally true; these are custom assertion scripts, not a test framework."
+        },
+        {
+          "item": "11. Residual-language sweep for dispatch remnants",
+          "status": "pass",
+          "evidence": "Case-insensitive grep over src/ and base44/functions/ for dispatch|bid|eta|en[ -]route|escrow|work order|breakdown request|fleet_code|fleet code|assign a mechanic|technician|job fee|ticket|fleet: ZERO hits for bid/ETA/en-route/escrow/work order/job fee/technician/assign-a-mechanic. Category (b) closed-path/preserved: 410-stub comments (createTicket/addTicketUpdate/createFleet/joinFleet entry.ts lines 3-8), deleteAccount/entry.ts lines 288-300,404-407 (purge-only RepairTicket/TicketUpdate deletion), deleteDemoData/entry.ts lines 10-11 (admin demo cleanup), Onboarding.jsx line 7 comment. Scope-affirming: Terms.jsx:16 ('does not dispatch'). Benign vendor-attribute/user-type strings, not app coordination: searchOptions.js:37 amenity label '24/7 dispatch' (the shop's own dispatch line), RateTable.jsx:1 'Service-call fee ... per dispatch' (vendor's fee unit), AccountType.jsx:9 and Onboarding.jsx:14 'Dispatcher' account self-description, AuthorizedVendor.jsx:21 'drivers and dispatchers' as audience, use-toast.jsx React reducer dispatch(). No live user-facing string implies the app dispatches, matches, tracks, or takes payment."
+        },
+        {
+          "item": "12. docs/FUTURE-SCOPE.md exists and describes the removal",
+          "status": "pass",
+          "evidence": "docs/FUTURE-SCOPE.md (58 lines) dated 2026-08-18: enumerates out-of-scope coordinated-roadside features, lists removed routes and 7 deleted frontend files, the nav/copy removals, the four 410-stubbed functions (+verifyFleetCode already retired), rollback anchor (checkpoint 6a846f2f, commit ded7f56), data preservation (zero records at removal), and the sibling rigdispatch-repo branch."
+        },
+        {
+          "item": "Extra: other live coordinated-roadside functionality",
+          "status": "pass",
+          "evidence": "None found. Backend RepairTicket/TicketUpdate references exist only in deletion paths (deleteAccount, deleteDemoData). Closest adjacent live feature is the Authorized Vendor program (src/pages/AuthorizedVendor.jsx, base44/functions/setAuthorizedVendor): a paid badge signaling net-30 terms where 'fleets... call you directly and pay on terms' — direct-contact signaling consistent with directory-only scope, no matching/assignment/tracking/payment flow. User.fleet_code/fleet_name fields remain on the User entity per the documented preservation decision but have no live write path (joinFleet/createFleet are 410)."
+        }
+      ]
+    },
+    "apex": {
+      "summary": "Production apex of roadservice.app is confirmed NOT cleaned up: 11 of 12 audited marketing pages still actively sell the coordinated-roadside/dispatch model (breakdown request intake, mechanic bids, ETA + all-in price approval before assignment/dispatch, RoadService job fee = difference between customer-approved total and accepted bid, RoadService-managed payment/escrow, on-site collection with weekly mechanic invoicing, fleet command center, mechanic application/network, 7-year job-record retention). Only /waitlist is essentially clean (generic early-access form; its only borderline text is a \"Fleet dispatcher / manager\" role option). /about literally self-describes the business as \"a dispatch broker\", and /terms + /privacy (both effective 2026-07-13) codify bids, job fees, escrow, on-site collection, and 7-year retention — i.e., the legal pages match the dispatch marketing, not the pure-directory pivot. The homepage title itself is \"Truck Repair Directory & Roadside Requests\". Sitemap.xml could NOT be retrieved: Exa's crawler rejects the XML content type (CRAWL_UNEXPECTED_CONTENT_TYPE), and direct fetch, WebFetch, and reader-proxy fallbacks are all egress-blocked for roadservice.app, so I cannot confirm which paths it advertises or whether the six 301-slated paths are present; an Exa site search returned only unrelated third-party companies. All page fetches returned real content (no apparent redirects or error pages on any of the 12 paths). Note Exa cannot report HTTP status codes, so soft-404s/meta-redirects cannot be fully excluded, but every page rendered full, path-appropriate marketing copy.",
+      "pages": [
+        {
+          "url": "https://roadservice.app/",
+          "serves": "Full dispatch-marketplace homepage (title: 'Truck Repair Directory & Roadside Requests | RoadService.app'). Hybrid directory + roadside request intake pitch with service-category cards, driver/mechanic/fleet CTAs. Live content, no apparent redirect/error.",
+          "dispatch_language": [
+            "Nationwide provider directory + roadside request intake",
+            "Find truck service. Request roadside help.",
+            "Available providers may respond with an ETA and total price. You review the response before approving service.",
+            "Request roadside service",
+            "Customer-facing all-in total before assignment",
+            "review the response, ETA, and price before assignment",
+            "Apply to RoadService.app's dispatch network",
+            "Matching demand and assignments are not guaranteed",
+            "Join as a mechanic →",
+            "One request can describe a tractor or trailer problem",
+            "Mobile mechanic & roadside diesel repair requests",
+            "Submit your breakdown location and service need now. If an eligible approved shop is available, it can respond with a bid or estimat[e]"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/how-it-works",
+          "serves": "Five-step dispatch workflow page ('From Breakdown to Back on the Road') plus FAQ — the canonical dispatch sales page. Live content.",
+          "dispatch_language": [
+            "Submit one breakdown request. If an eligible approved mechanic is available, review the response, ETA, and price before assignment.",
+            "Submit your breakdown request",
+            "More detail helps dispatch evaluate the request",
+            "Eligible mechanics are notified",
+            "A notification is an opportunity to respond, not an assignment or a guaranteed match",
+            "Mechanics compete with bids",
+            "RoadService.app presents one customer-facing total for you to approve before dispatch",
+            "The customer-approved total is the job price unless you separately approve a change",
+            "Approve and dispatch",
+            "review the quote and ETA, then approve before the mechanic is assigned or starts travel",
+            "Fleet managers see repair cost and history auto-logged in their command center",
+            "Get a mechanic now",
+            "a payment method on file",
+            "call (561) 726-3111 and a dispatcher can start the request for you instead",
+            "contact dispatch about alternatives"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/for-drivers",
+          "serves": "Driver/owner-operator landing page selling the request-bid-approve flow with FAQ. Live content.",
+          "dispatch_language": [
+            "Broken down? Start one roadside request.",
+            "review the ETA and price before assignment",
+            "Request service now",
+            "Review an ETA before assignment",
+            "Responding mechanics submit a bid or estimate and ETA. You approve the all-in total before assignment",
+            "Before a shop can receive dispatch jobs, it must pass review",
+            "Dispatch availability is different from directory coverage",
+            "a command center showing live breakdowns and spend across the fleet",
+            "Qualified mechanics respond with an ETA and pricing. Review the all-in total, then approve before a mechanic is assigned or starts travel",
+            "pay at the truck, or use RoadService-managed checkout when it is explicitly offered",
+            "you see the customer-facing all-in total, including the RoadService job fee when applicable",
+            "A mechanic bid is not necessarily your total"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/for-fleets",
+          "serves": "Fleet landing page: 'command center' pitch, 24/7 request intake, quote approval, per-asset spend, DOT/PM tools, fleet billing FAQ. Live content.",
+          "dispatch_language": [
+            "A command center for every truck and trailer you run.",
+            "Submit roadside requests online 24/7, review quotes",
+            "dispatch and ETA depend on eligible provider availability",
+            "24/7 roadside request intake",
+            "Dispatchers can view active breakdowns",
+            "Approve quotes before work starts",
+            "the command center shows the customer-facing all-in total, including any RoadService job fee, for approval before assignment",
+            "the mechanic collects the customer-approved total and RoadService.app invoices the mechanic for the exact difference between that total and the accepted bid",
+            "If RoadService-managed payment or escrow is explicitly offered, the fleet pays through that checkout",
+            "Drivers can submit breakdown requests from the fleet portal. Quotes remain pending until an authorized fleet user approves them",
+            "dispatch a mechanic directly from the PM record",
+            "Dispatch priority is c[...]"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/for-mechanics",
+          "serves": "Mechanic recruitment page: apply, get verified, go on duty, bid on requests; job-fee and payment-instruction explainer with FAQ. Live content.",
+          "dispatch_language": [
+            "Build an approved profile. Bid when eligible work is available.",
+            "Apply to RoadService.app's mechanic network",
+            "Approved shops may receive matching breakdown requests",
+            "Your shop submits its own bid and ETA for each eligible request",
+            "Dispatch and customer approval are still required before travel",
+            "For on-site jobs, you collect the customer-approved total and RoadService.app invoices your shop weekly for the exact difference between that total and your accepted bid",
+            "If a job explicitly uses RoadService-managed payment or escrow, do not collect a second payment at the truck",
+            "Buying directory placement does not move a shop ahead in dispatch matching",
+            "Fill out the mechanic application — business name, service area, capabilities, and upload your COI and W-9",
+            "Dispatch reviews your current insurance, W-9, business details, and selected services before activating the shop",
+            "submit a bid and ETA, then wait for dispatch and customer approval before travel",
+            "RoadService.app's fee is the exact difference between the customer-approved total and your accepted bid",
+            "not required to receive dispatch jobs"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/waitlist",
+          "serves": "Simple early-access waitlist signup form (name, work email, role). Essentially clean — no dispatch flow marketing; only a role-dropdown option referencing dispatchers.",
+          "dispatch_language": [
+            "I am a… Driver / owner-operator / Mobile mechanic / Fleet dispatcher / manager (role option 'Fleet dispatcher / manager' only — borderline)"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/status",
+          "serves": "Platform status / availability page that walks through the 4-step request→bid→approve→document flow and links customer/mechanic/dispatcher app surfaces. Not an uptime monitor. Live content.",
+          "dispatch_language": [
+            "it explains the current request flow and availability limits",
+            "Driver requests — The customer submits the location, asset, symptoms, and requested service",
+            "Eligible vetted mechanics are paged and submit a bid or estimate with an ETA",
+            "Dispatch reviews the response, the customer approves the all-in total, and only then is the mechanic assigned",
+            "proof of work is uploaded and the ticket is closed",
+            "The customer, mechanic, and dispatcher surfaces are linked below",
+            "Mechanic response, ETA, and arrival are not guaranteed"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/about",
+          "serves": "About page — title 'About RoadService.app — Heavy-Duty Roadside Dispatch'. Explicitly self-describes the company as a dispatch broker; covers job fee, escrow, on-site payment, mechanic network. Live content.",
+          "dispatch_language": [
+            "Heavy-Duty Roadside Dispatch (page title)",
+            "one place to submit and coordinate roadside requests",
+            "RoadService.app is a dispatch broker and nationwide provider directory",
+            "eligible approved mechanics may respond with a bid or estimate and ETA for the customer to review before assignment",
+            "Dispatch coverage is different: a match, ETA, or arrival is not guaranteed",
+            "We review current insurance and a W-9 before approving a shop for dispatch",
+            "Our job fee is the exact difference between the customer-approved total and the accepted mechanic bid",
+            "In the on-site flow, payment happens directly between driver and mechanic at the truck",
+            "If a job explicitly offers RoadService-managed payment or escrow, a third-party processor handles the customer payment",
+            "a workflow for available mechanics to respond with pricing and an ETA",
+            "roadside request support; online intake is available 24/7",
+            "mechanics@roadservice.app — mechanic applications"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/contact",
+          "serves": "Contact page with lanes for roadside requests, driver support, fleet accounts, mechanic applications, and privacy inquiries. Live content.",
+          "dispatch_language": [
+            "Call to start a truck or trailer request. Provider response, ETA, and arrival depend on live availability.",
+            "Matching, ETA, and arrival are not guaranteed",
+            "Mechanic applications — Questions about joining the network, your application status, or capability verification",
+            "Driver needing help — start a request in the app or call",
+            "Request roadside service",
+            "Apply as mechanic"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/terms",
+          "serves": "Terms of Service, effective 2026-07-13 — legally codifies the dispatch-broker model: bids, job fee, on-site collection, managed payment/escrow, cancellation/dispatch fees, dispute mediation. Live content.",
+          "dispatch_language": [
+            "RoadService.app is a dispatch broker that matches heavy-duty truck drivers with independent mobile mechanics",
+            "When a job explicitly offers RoadService-managed payment or escrow, card processing is provided by a third-party payment processor",
+            "All mechanics dispatched through RoadService.app are independent contractors",
+            "before approving a shop for dispatch",
+            "Mechanics submit their own bids; RoadService.app presents the customer with one all-in quote",
+            "The RoadService.app job fee is the exact difference between the customer-approved total and the accepted mechanic bid",
+            "On-site collection: When the job instructions say payment is due at the truck, you pay the mechanic the customer-approved total directly",
+            "invoices the mechanic weekly for the exact difference between the customer-approved total and the accepted mechanic bid",
+            "RoadService-managed payment or escrow: ... the customer pays through the third-party payment processor under the deposit, capture, refund, and cancellation terms",
+            "After acceptance and dispatch, a cancellation or dispatch fee may apply",
+            "Contact dispatch at 1-561-726-3111 to coordinate",
+            "our aggregate liability for any claim is capped at the dispatch fee for the specific transaction"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/privacy",
+          "serves": "Privacy Policy, effective 2026-07-13 — data practices written for the dispatch/matching model, including bid records, on-site collection variance notes, escrow transaction data, and 7-year job-record retention. Live content.",
+          "dispatch_language": [
+            "To match you with a mechanic we collect: ... GPS location at the time of the request",
+            "Driver contact info is shared with the mechanic who accepts your job",
+            "Mechanic identity + rating is shown to drivers reviewing quotes",
+            "transactional job-dispatch, service-status, and account messages",
+            "disabling dispatch SMS in your profile",
+            "For an on-site collection job, the mechanic collects the customer-approved total at the truck",
+            "issue the mechanic's weekly invoice for the exact difference between the customer-approved total and the accepted mechanic bid",
+            "a job that explicitly uses RoadService-managed payment or escrow",
+            "Job records (request, bids, accepted offer, completion proof, payment record) are retained for 7 years for tax and dispute resolution purposes"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/join",
+          "serves": "Mechanic/shop application page — 'Apply to join the dispatch network' form (shop name, contact, city/state) with bid/job-fee bullet points. Live content.",
+          "dispatch_language": [
+            "Join the RoadService dispatch network — for truck repair shops (page title)",
+            "Apply to join the dispatch network",
+            "Approved shops can go on duty and share a fresh location to become eligible for matching when customer demand exists",
+            "Eligible request alerts depend on live demand, approved services, coverage, on-duty status, and fresh location",
+            "Submit your bid and ETA, then wait for dispatch and customer approval before travel",
+            "the RoadService job fee is the difference between the customer-approved total and your accepted bid",
+            "directory advertising is optional and separate from dispatch matching",
+            "Approval does not guarantee leads, request volume, assignments, response timing, or revenue",
+            "Request to join the network"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/sitemap.xml",
+          "serves": "UNRETRIEVABLE with available tooling: Exa crawler rejects it (CRAWL_UNEXPECTED_CONTENT_TYPE, twice — indicating the URL exists but serves non-HTML, consistent with a live XML sitemap), and direct curl/WebFetch/reader-proxy fetches are all egress-blocked for roadservice.app (proxy 403 / EGRESS_BLOCKED). Cannot enumerate advertised paths or confirm presence of the six 301-slated paths; no sitemap source exists in the local repo to infer from.",
+          "dispatch_language": []
+        }
+      ]
+    },
+    "directory": {
+      "summary": "Audited the live production directory zone of roadservice.app via sitemap discovery (sitemap.xml -> pages-sitemap.xml + directory-sitemap.xml) and per-template sampling of 20+ URLs. VERDICT: the directory zone is NOT a pure directory — nearly every template family carries coordinated-roadside/dispatch language, and all three known production phrases were found verbatim on live pages. Template verdicts: /directory DIRTY (exact phrase \"Listing coverage does not guarantee dispatch availability\" + \"submit a roadside request for availability-based dispatch\"); state pages DIRTY (variant \"Directory coverage does not guarantee dispatch availability\"); city pages DIRTY (availability-based roadside request copy, per-listing \"Request service\" buttons deep-linking to app.roadservice.app with shop/lat/lng params — a breakdown-request funnel on every listing card); service-in-city pages (/{service}/{st}/{city}) DIRTY (\"customer-facing all-in total shown before assignment\"); shop profiles DIRTY (dispatch-eligibility disclaimer + \"Apply to the dispatch network\" CTA); guides hub and guide details DIRTY (\"One request. Availability-based matching.\", \"including any applicable job fee, before assignment\"); cost-guides hub and details DIRTY (exact phrases \"including the RoadService job fee when applicable\" and \"A mechanic's bid is not necessarily the customer price\", plus \"Get a mechanic dispatched\"/\"Get dispatched now\" CTAs); compare hub + detail DIRTY (\"on-demand dispatch marketplace\", \"Get a mechanic dispatched\", job-fee language); trailer-type pages DIRTY; national hubs mixed — /mobile-truck-repair appears CLEAN (minimal state-picker page) but /truck-breakdown-service and /truck-roadside-assistance are dispatch-funnel pages; /join is a full dispatch-network application page living in the DIRECTORY sitemap; /about describes RoadService as a \"dispatch broker\". Only /locations (state index) and /mobile-truck-repair sampled clean. Join-dispatch CTAs: city pages CTA \"List your shop\" points to /advertise (advertising, OK), but shop profiles carry \"Apply to the dispatch network\", and guides/cost-guides/compare/trailer pages carry \"Submit a request\"/\"Get dispatched\" CTAs into app.roadservice.app. Breakdown-request forms: yes — location-search widgets (\"Use my location\" + service picker + \"Find service\") are embedded on /directory, city pages, service-in-city pages, and /truck-breakdown-service. Sponsored placement: appears labeled — /advertise sells Basic/$29, Priority/$79, #1 Spot/$199 tiers; San Antonio city page shows an empty ad slot explicitly labeled \"Sponsor ... one clearly labeled sponsored position for this market\"; no unlabeled sponsored listing was observed; multiple pages state \"Sponsored directory placement never affects dispatch matching\" (itself dispatch language). Not sampled: /repair/* and /diagnose/* fault-code families (guides hub shows they sit behind the same \"submit a roadside request\" framing). Note: direct XML fetch is egress-blocked and Exa rejects XML content-type; sitemaps were read via r.jina.ai proxied through Exa. Cleanup scope for a pure directory: shared footer CTA blocks (\"One request. Availability-based matching.\" / \"Submit a request\"), lib/compare.ts, lib/costguides.ts, lib/guides.ts, lib/trailers.ts, lib/cityServiceContent.ts, lib/nationalServiceHubs.ts content, per-listing \"Request service\" buttons, shop-profile dispatch disclaimer, and the /join + /truck-breakdown-service pages' presence in the directory sitemap.",
+      "pages": [
+        {
+          "url": "https://roadservice.app/sitemap.xml",
+          "serves": "Sitemap index (2 children: pages-sitemap.xml, directory-sitemap.xml). Direct fetch egress-blocked; Exa rejects XML content-type — read via r.jina.ai. Directory sitemap contains /advertise, /join, national service hubs, /locations*, /guides + /guide/*, /repair/*, /diagnose/* (hundreds of fault-code pages), /truck-breakdown-service.",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://roadservice.app/directory",
+          "serves": "Directory landing: state grid (~50 states, city/provider counts), service categories, location search widget, shop-owner CTA. DIRTY.",
+          "dispatch_language": [
+            "Listing coverage does not guarantee dispatch availability",
+            "submit a roadside request for availability-based dispatch",
+            "List free or choose a sponsored directory placement"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/locations",
+          "serves": "State index page (picker + state list with city/provider counts). CLEAN — no dispatch language observed in rendered content.",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://roadservice.app/locations/texas",
+          "serves": "State page: city list with provider counts. DIRTY (one dispatch disclaimer).",
+          "dispatch_language": [
+            "Directory coverage does not guarantee dispatch availability."
+          ]
+        },
+        {
+          "url": "https://roadservice.app/locations/ohio",
+          "serves": "State page, same template as Texas. DIRTY.",
+          "dispatch_language": [
+            "Directory coverage does not guarantee dispatch availability."
+          ]
+        },
+        {
+          "url": "https://roadservice.app/locations/texas/fort-worth",
+          "serves": "City page: provider cards by service, common-breakdowns editorial, claim CTA ('List your shop' -> /advertise). DIRTY — request funnel embedded.",
+          "dispatch_language": [
+            "submit an availability-based roadside request",
+            "Broken down near Fort Worth? Search by your exact spot"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/locations/texas/san-antonio",
+          "serves": "City page (24 providers). Every listing card has a 'Request service' link to app.roadservice.app/?...&shop=...&lat=...&lng=... (breakdown-request funnel per listing). Contains an EMPTY ad slot labeled 'Sponsor — Put your business in one clearly labeled sponsored position for this market' -> /advertise. Sponsored placement is labeled; no live sponsored listing observed. DIRTY.",
+          "dispatch_language": [
+            "submit an availability-based roadside request",
+            "Request service (per-listing CTA to app.roadservice.app)"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/mobile-truck-repair/tx/san-antonio",
+          "serves": "Service-in-city page: full provider list for one service. DIRTY — dispatch pricing/assignment copy in intro.",
+          "dispatch_language": [
+            "a customer-facing all-in total shown before assignment when a provider responds",
+            "available providers may respond with an ETA and total price, and you review the response before approving service"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/shop/el-mechanico-mobile-diesel-repair-san-antonio-tx-8b3806",
+          "serves": "Provider profile (/shop/*): services, hours, contact, claim/advertise CTAs. DIRTY — dispatch-eligibility disclaimer + dispatch-network CTA.",
+          "dispatch_language": [
+            "A directory listing does not by itself mean this provider is approved, online, or available for dispatch. Request matching depends on eligibility and current availability.",
+            "Apply to the dispatch network"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/mobile-truck-repair",
+          "serves": "National service hub: minimal 'pick a state' page. CLEAN as sampled.",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://roadservice.app/truck-breakdown-service",
+          "serves": "National page that IS a request funnel: 'Request roadside service' CTA, location widget, 'How a RoadService request works' steps, dispatch FAQ. DIRTY throughout.",
+          "dispatch_language": [
+            "available providers may respond with an ETA and total price, and you review the response before approving service",
+            "nothing is dispatched until you accept a specific response",
+            "Dispatch is availability-based and is not guaranteed in every market",
+            "Sponsored directory placement never affects request matching"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/truck-roadside-assistance",
+          "serves": "National editorial hub mixing directory guidance with request-workflow explanation. DIRTY.",
+          "dispatch_language": [
+            "The request workflow lets eligible approved providers review the breakdown",
+            "review the reported ETA and customer-facing total before approving an assignment",
+            "Sponsored directory placement does not influence dispatch matching",
+            "a submitted request does not guarantee a response, ETA, or arrival"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/guides",
+          "serves": "Help-center hub listing 7 guides + diagnose/repair tools. DIRTY — dispatch CTA block in footer linking to app.roadservice.app.",
+          "dispatch_language": [
+            "use the directory or request form when you need professional help",
+            "One request. Availability-based matching.",
+            "If an eligible approved shop is on duty and available, it may respond with an ETA and price for you to review before assignment",
+            "Submit a request (-> app.roadservice.app/?utm_source=directory&utm_medium=guides_footer)"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/guide/trailer-repair",
+          "serves": "Guide detail. DIRTY — 'Request a trailer tech' section with job-fee/assignment language.",
+          "dispatch_language": [
+            "Submit one RoadService.app request. If an eligible provider responds, review the ETA and customer-facing all-in total, including any applicable job fee, before assignment."
+          ]
+        },
+        {
+          "url": "https://roadservice.app/guide/truck-broke-down-on-highway",
+          "serves": "Guide detail (safety steps). DIRTY — step 5 is a dispatch instruction.",
+          "dispatch_language": [
+            "Send your location and problem through RoadService.app. Eligible providers may respond when available; review the ETA and customer-facing all-in total before assignment.",
+            "send a request on RoadService.app or call (561) 726-3111"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/cost-guides",
+          "serves": "Cost-guides hub (8 guides). DIRTY — request CTAs top and bottom to app.roadservice.app.",
+          "dispatch_language": [
+            "Broken down right now? Get a quote before you commit. / Request roadside service",
+            "One request. Review a response before assignment.",
+            "review its ETA and the customer-facing total before assignment"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/cost-guides/mobile-truck-repair-cost",
+          "serves": "Cost guide detail with price tables. DIRTY — contains BOTH remaining known production phrases verbatim, twice each area, plus dispatch CTAs.",
+          "dispatch_language": [
+            "including the RoadService job fee when applicable",
+            "A mechanic's bid is not necessarily the customer price.",
+            "Get a mechanic dispatched",
+            "Get dispatched now",
+            "RoadService.app shows the customer-facing all-in total ... before you accept"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/cost-guides/heavy-duty-towing-cost",
+          "serves": "Cost guide detail, same template. DIRTY.",
+          "dispatch_language": [
+            "including the RoadService job fee when applicable",
+            "Get a mechanic dispatched",
+            "Get dispatched now",
+            "review and confirm its price and ETA before assignment"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/compare",
+          "serves": "Compare hub (9 competitor pages: truckdown, ntts, findtruckservice, bigrig, fleetnet, truckerpath, loves-truck-care, ta-truck-service, rush-truck-centers). DIRTY.",
+          "dispatch_language": [
+            "Get a mechanic dispatched (-> app.roadservice.app)"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/compare/roadservice-vs-truckdown",
+          "serves": "Compare detail: side-by-side table positioning RoadService as 'an on-demand dispatch marketplace'. DIRTY — deepest dispatch/pricing language of any template.",
+          "dispatch_language": [
+            "RoadService.app is an on-demand dispatch marketplace",
+            "review the customer-facing all-in total, including any RoadService job fee, before assignment",
+            "the customer approves an all-in total that includes the RoadService job fee when applicable",
+            "Get a mechanic dispatched",
+            "Get dispatched",
+            "Dispatch eligibility requires reviewed business, insurance, tax, and service details"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/trailer",
+          "serves": "Trailer-repair-by-type hub (16 types). DIRTY.",
+          "dispatch_language": [
+            "then submit a roadside request if needed",
+            "Trailer down right now?"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/trailer/dry-van",
+          "serves": "Trailer-type detail. DIRTY — request CTA block.",
+          "dispatch_language": [
+            "Dry Van Trailer down? Submit a roadside request.",
+            "If an eligible approved provider is on duty and available, it may respond with a price and ETA",
+            "Submit a request; if an eligible approved trailer tech responds, review its quote and ETA before assignment"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/join",
+          "serves": "Full dispatch-network application page (form: shop name, contact, city/state) — listed in the DIRECTORY sitemap. Entirely dispatch content.",
+          "dispatch_language": [
+            "Apply to join the dispatch network",
+            "the RoadService job fee is the difference between the customer-approved total and your accepted bid",
+            "Submit your bid and ETA, then wait for dispatch and customer approval before travel",
+            "Approval does not guarantee leads, request volume, assignments, response timing, or revenue"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/about",
+          "serves": "About page shared by the directory zone (linked from directory footer). Describes the dispatch-broker business model at length.",
+          "dispatch_language": [
+            "RoadService.app is a dispatch broker and nationwide provider directory",
+            "Our job fee is the exact difference between the customer-approved total and the accepted mechanic bid",
+            "eligible approved mechanics may respond with a bid or estimate and ETA for the customer to review before assignment",
+            "We review current insurance and a W-9 before approving a shop for dispatch"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/advertise",
+          "serves": "Directory advertising/claim page: Free/Basic $29/Priority $79/#1 Spot $199 tiers; sponsored placement clearly labeled and priced. Mostly directory-appropriate but references dispatch to disclaim it.",
+          "dispatch_language": [
+            "Directory advertising is separate from dispatch",
+            "No insurance, W-9, payout setup, or dispatch approval is required",
+            "Those requirements apply only if you choose to receive dispatched jobs"
+          ]
+        },
+        {
+          "url": "https://roadservice.app/trailers",
+          "serves": "404 — 'That page doesn't exist on RoadService.app.' (trailer types live at /trailer, not /trailers).",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://roadservice.app/repair and /diagnose families",
+          "serves": "NOT SAMPLED in body (repair-by-make/engine pages and ~500 SPN/FMI + OBD fault-code pages in the directory sitemap). Guides hub frames them with 'jump back to a guide or submit a roadside request' — likely same footer CTA; recommend spot-checking during cleanup.",
+          "dispatch_language": []
+        }
+      ]
+    },
+    "hosts": {
+      "summary": "Audit result: the \"one canonical public domain\" claim does NOT hold cleanly. The apex/www directory is fine and directory.roadservice.app appears to serve a full duplicate copy of the directory homepage on its own hostname (real SEO duplicate-content risk unless it 301s or canonicals to the apex — Exa cannot confirm headers). app.roadservice.app is publicly reachable and actively advertises breakdown/roadside request intake with dispatch language and a dispatch phone number — this directly contradicts a directory-only launch. api.roadservice.app publicly exposes a marketplace API index page describing driver requests, mechanic bids, and dispatcher markup/approval endpoints. mechanic. and dispatch. subdomains are reachable but gate to sign-in (low content risk, still live hosts). business.roadservice.app serves the Business Hub as expected (in scope). The base44 origin root serves a \"Something went wrong\" error shell titled \"RoadService Business Hub\" (not a competing public directory); the sitemap could not be verified as a 410 — Exa returned CRAWL_UNEXPECTED_CONTENT_TYPE, meaning it got a non-HTML response of unknown status, and the Vercel fetch tool cannot reach base44 hosts, so the 410 claim remains UNVERIFIED. Also unverified: whether www 301-redirects to the apex — it serves identical directory content, consistent with either a redirect or a mirrored host.",
+      "pages": [
+        {
+          "url": "https://handsome-fleet-fix-flow.base44.app/",
+          "serves": "Error shell titled 'RoadService Business Hub': 'Something went wrong — RoadService hit an unexpected error. Try reloading — your data is safe.' Not acting as a competing public directory. First fetch attempt timed out (CRAWL_LIVECRAWL_TIMEOUT), second succeeded, so the origin is up but flaky.",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://handsome-fleet-fix-flow.base44.app/sitemap.xml",
+          "serves": "UNVERIFIED. Exa returned CRAWL_UNEXPECTED_CONTENT_TYPE (a non-HTML response of unknown status code); the Vercel fetch tool cannot access base44 hosts ('Unable to create shareable URL'). Cannot confirm the claimed 410 — the response could equally be an XML sitemap, an empty body, or an error. Needs a raw HTTP check from an environment with egress.",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://business.roadservice.app/",
+          "serves": "Serves the 'RoadService Business Hub' as expected (IN SCOPE). Rendered content is minimal to a crawler — header/skip-link and a link to /business — consistent with a client-side app behind login. First attempt timed out; second succeeded.",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://app.roadservice.app/",
+          "serves": "PUBLICLY REACHABLE and actively advertising breakdown intake — 'RoadService.app — Driver', 'Roadside request intake for trucks'. Lists covered services (truck/trailer repair, tire, tow, jump-start, fuel), an SOS coordinates flow, a dispatch phone number (561) 726-3111, and sign-in/create-account. CONTRADICTS a directory-only launch.",
+          "dispatch_language": [
+            "Roadside request intake for trucks",
+            "Submit online at any time. Eligible approved mechanics may respond when available; ETA and arrival are not guaranteed.",
+            "SOS — broken down right now?",
+            "Find your coordinates, then call dispatch and read them aloud.",
+            "Call roadside request support · (561) 726-3111",
+            "Call to start a request, or create an account to submit and track online. Provider response depends on availability."
+          ]
+        },
+        {
+          "url": "https://mechanic.roadservice.app/",
+          "serves": "Reachable; serves 'RoadService.app — Mechanic' with 'Redirecting to sign in…' — no public mechanic sign-up or bid marketing visible to an anonymous crawler. Low content exposure, but the host exists publicly and its title names the mechanic marketplace app.",
+          "dispatch_language": []
+        },
+        {
+          "url": "https://dispatch.roadservice.app/",
+          "serves": "Reachable; serves 'RoadService.app — Dispatch Console' with 'Verifying Dispatch access… One moment.' — an access-gated console, no console content exposed. Host and page title still publicly reveal a dispatch console exists.",
+          "dispatch_language": [
+            "RoadService.app — Dispatch Console",
+            "Verifying Dispatch access…"
+          ]
+        },
+        {
+          "url": "https://api.roadservice.app/",
+          "serves": "Reachable; root serves a public HTML index: 'RoadService.app API — Backend for the RoadService.app marketplace' listing endpoints including POST /v1/requests (create a roadside request, driver), POST /v1/offers (submit a bid, mechanic), PATCH /v1/dispatcher/offers/:id (set markup), POST /v1/dispatcher/requests/:id/approve (capture + split). Publicly documents the dispatch/marketplace mechanics — contradicts directory-only positioning.",
+          "dispatch_language": [
+            "Backend for the RoadService.app marketplace.",
+            "POST /v1/requests — create a roadside request (driver)",
+            "POST /v1/offers — submit a bid (mechanic)",
+            "PATCH /v1/dispatcher/offers/:id — set markup",
+            "POST /v1/dispatcher/requests/:id/approve — capture + split"
+          ]
+        },
+        {
+          "url": "https://directory.roadservice.app/",
+          "serves": "Serves a full public directory homepage ('Truck Repair, Towing & Roadside Near You | RoadService.app') with state/city browse (e.g. 'California 111 cities · 245 providers') — substantially the same directory content as roadservice.app on a separate hostname. Unless it 301s or sets canonical to the apex (not verifiable via Exa), this is a duplicate-content SEO risk and a second public directory host, contradicting 'one canonical public domain'. It also contains one dispatch-offer line.",
+          "dispatch_language": [
+            "Call a provider to confirm availability, or submit a roadside request for availability-based dispatch.",
+            "Listing coverage does not guarantee dispatch availability."
+          ]
+        },
+        {
+          "url": "https://www.roadservice.app/",
+          "serves": "Serves the apex directory homepage content ('Find Truck Repair Near You | RoadService.app', identical to https://roadservice.app/). UNCERTAIN whether this is a 301 to the apex or the same content served on www — Exa reported the fetched URL as www, which is consistent with either. Canonicalization needs a raw header check. Homepage itself contains mild managed-dispatch cross-links: 'Need managed roadside dispatch? Request service'.",
+          "dispatch_language": [
+            "Need managed roadside dispatch? Request service",
+            "For managed requests, a mechanic bid is not necessarily the customer total. Review the all-in quote before approving service."
+          ]
+        }
+      ]
+    },
+    "vercel": {
+      "summary": "Audited all 36 Vercel projects in the only team on the account, \"albertsroadservice's projects\" (team_2BstI1BjhxBYRswaG6TtOLT2, slug albertsroadservices-projects) — list_teams confirms no other teams exist. Release cohort confirmed as rigdispatch-marketing and rigdispatch-directory, both Next.js. CRITICAL FINDING 1: NO roadservice.app-family domain is attached to ANY Vercel project for the apex/marketing/directory zones — roadservice.app, www.roadservice.app, business.roadservice.app, and directory.roadservice.app are NOT attached anywhere in this Vercel account; rigdispatch-marketing and rigdispatch-directory serve only *.vercel.app preview domains (marketing's latest production deploy is READY, 2026-08-18; directory's latest deploy 2026-08-18 is a PREVIEW, target=null — it has no visible production deployment). Those four zone domains must be hosted elsewhere (e.g. Base44) or are unattached. CRITICAL FINDING 2: four roadservice.app subdomains ARE attached to out-of-scope dispatch-app projects: app.roadservice.app -> rigdispatch-driver, api.roadservice.app -> rigdispatch-api, dispatch.roadservice.app -> rigdispatch-dispatcher, mechanic.roadservice.app -> rigdispatch-mechanic. These are live custom-domain attachments outside the release cohort. DUPLICATE/ACCIDENT RISK: bare-named projects \"directory\" (errored dup of rigdispatch-directory), \"api\" (errored dup of rigdispatch-api), plus \"server\" and \"admin\" (errored, generic names) could receive an accidental `vercel deploy` from the wrong directory; two gate/rehearsal projects (gate-j-rehearsal, gate-h-486cc0b) and a brand-new empty rigdispatch-platform-verification (created today 2026-08-18, zero deployments) are strays. 20 projects are unrelated ventures (truckmedic suite, tradeos/crewcommander.app, quotedrop, storymint, shopbid, etc.). Read-only audit — nothing was modified, deleted, or redeployed.",
+      "checks": [
+        {
+          "item": "Team coverage: albertsroadservices-projects is the only team",
+          "status": "pass",
+          "evidence": "list_teams returned exactly one team: team_2BstI1BjhxBYRswaG6TtOLT2 (slug albertsroadservices-projects). All 36 projects live here; no other teams to audit."
+        },
+        {
+          "item": "DOMAIN FINDING: roadservice.app / www / business / directory zones NOT on Vercel",
+          "status": "fail",
+          "evidence": "None of roadservice.app, www.roadservice.app, business.roadservice.app, directory.roadservice.app is attached to any of the 36 projects. The expected release-cohort projects hold only vercel.app domains. Apex + zone traffic is therefore NOT served by this Vercel account — verify where DNS actually points (likely Base44) before launch."
+        },
+        {
+          "item": "DOMAIN FINDING: roadservice.app subdomains attached to out-of-scope projects",
+          "status": "fail",
+          "evidence": "app.roadservice.app -> rigdispatch-driver (prj_ck0O...); api.roadservice.app -> rigdispatch-api (prj_za0y...); dispatch.roadservice.app -> rigdispatch-dispatcher (prj_gdP8...); mechanic.roadservice.app -> rigdispatch-mechanic (prj_VV0U...). All four are OUT-OF-SCOPE dispatch-app projects with live roadservice.app-family production domains — outside the release cohort."
+        },
+        {
+          "item": "DUPLICATE FINDING: bare-named dup projects could catch accidental deploys",
+          "status": "fail",
+          "evidence": "'directory' (prj_c5tg..., latest deploy ERROR 2026-07-20) duplicates rigdispatch-directory; 'api' (prj_uL7B..., latest prod deploy ERROR 2026-06-01) duplicates rigdispatch-api; generic 'server' and 'admin' (both ERROR) also collide with common folder names. A `vercel` link/deploy from the wrong cwd would land here silently."
+        },
+        {
+          "item": "rigdispatch-marketing — RELEASE COHORT",
+          "status": "pass",
+          "evidence": "Next.js; apex marketing zone project. Domains: only rigdispatch-marketing-albertsroadservices-projects.vercel.app — roadservice.app/www NOT attached. Latest production deployment READY 2026-08-18 (dpl_Ca4dQSu3)."
+        },
+        {
+          "item": "rigdispatch-directory — RELEASE COHORT",
+          "status": "warn",
+          "evidence": "Next.js; directory zone project. Domains: only rigdispatch-directory-albertsroadservices-projects.vercel.app — directory.roadservice.app NOT attached. Latest deployment 2026-08-18 is target=null (preview); no production deployment visible."
+        },
+        {
+          "item": "rigdispatch-driver — OUT-OF-SCOPE DISPATCH APP",
+          "status": "warn",
+          "evidence": "Next.js driver app. Holds app.roadservice.app (roadservice.app-family domain outside release cohort — flagged). Latest deploy 2026-08-18 preview (target=null)."
+        },
+        {
+          "item": "rigdispatch-api — OUT-OF-SCOPE DISPATCH APP",
+          "status": "warn",
+          "evidence": "Next.js API. Holds api.roadservice.app (flagged). Latest deploy 2026-08-18 preview."
+        },
+        {
+          "item": "rigdispatch-dispatcher — OUT-OF-SCOPE DISPATCH APP",
+          "status": "warn",
+          "evidence": "Next.js dispatcher app. Holds dispatch.roadservice.app (flagged). Latest deploy 2026-08-18 preview."
+        },
+        {
+          "item": "rigdispatch-mechanic — OUT-OF-SCOPE DISPATCH APP",
+          "status": "warn",
+          "evidence": "Next.js mechanic app. Holds mechanic.roadservice.app (flagged). Latest deploy 2026-08-18 preview."
+        },
+        {
+          "item": "rigdispatch-home — OUT-OF-SCOPE DISPATCH APP",
+          "status": "pass",
+          "evidence": "No framework set; only vercel.app domains; latest deploy 2026-08-18 CANCELED (target=null). No custom domains."
+        },
+        {
+          "item": "rigdispatch-dispatcher-agent — OUT-OF-SCOPE DISPATCH APP",
+          "status": "pass",
+          "evidence": "Fastify agent service; only vercel.app domains; latest deploy 2026-08-18 preview. No roadservice.app domains."
+        },
+        {
+          "item": "rigdispatch-platform-verification — STRAY/GATE/REHEARSAL",
+          "status": "warn",
+          "evidence": "Next.js; created today 2026-08-18 (~13:40 UTC), zero deployments, zero domains. Empty verification shell — launch-day stray; confirm ownership before it accumulates deploys."
+        },
+        {
+          "item": "rigdispatch-directory-gate-j-rehearsal — STRAY/GATE/REHEARSAL",
+          "status": "warn",
+          "evidence": "One-off rehearsal project; last deploy 2026-07-25 preview; vercel.app domain only. Name overlaps rigdispatch-directory — accidental-deploy risk during launch."
+        },
+        {
+          "item": "rigdispatch-directory-gate-h-486cc0b — STRAY/GATE/REHEARSAL",
+          "status": "warn",
+          "evidence": "One-off gate project pinned to commit 486cc0b; last deploy 2026-07-24 preview; vercel.app domains only. Same name-collision risk."
+        },
+        {
+          "item": "directory — STRAY/GATE/REHEARSAL",
+          "status": "warn",
+          "evidence": "Next.js duplicate of rigdispatch-directory; only deploy ERROR 2026-07-20; vercel.app domains only. Bare name = high accidental-deploy risk (flagged above)."
+        },
+        {
+          "item": "api — STRAY/GATE/REHEARSAL",
+          "status": "warn",
+          "evidence": "Next.js duplicate of rigdispatch-api; latest production deploy ERROR 2026-06-01; vercel.app domains only. Bare name = accidental-deploy risk (flagged above)."
+        },
+        {
+          "item": "roadservice-staging — STRAY/GATE/REHEARSAL",
+          "status": "pass",
+          "evidence": "RoadService staging shell; last production deploy 2026-06-03 READY; roadservice-staging.vercel.app only. Dormant since June; no custom domains."
+        },
+        {
+          "item": "tradeos — UNRELATED",
+          "status": "pass",
+          "evidence": "Not RoadService — CrewCommander product (crewcommander.app, www.crewcommander.app attached). Latest deploy ERROR 2026-07-24."
+        },
+        {
+          "item": "quotedrop — UNRELATED",
+          "status": "pass",
+          "evidence": "Not RoadService — jobestimate.app attached. Prod deploy READY 2026-07-13."
+        },
+        {
+          "item": "storymint — UNRELATED",
+          "status": "pass",
+          "evidence": "Not RoadService — storys.dev / mystorys.dev attached. Prod deploy READY 2026-06-14."
+        },
+        {
+          "item": "atelier-larina — UNRELATED",
+          "status": "pass",
+          "evidence": "Not RoadService; vercel.app domains only. Prod deploy READY 2026-05-27."
+        },
+        {
+          "item": "warroom — UNRELATED",
+          "status": "pass",
+          "evidence": "Internal tool on warroom.albertsroadservice.com (albertsroadservice.com, not roadservice.app). Prod deploy READY 2026-05-20."
+        },
+        {
+          "item": "trucktrailer — UNRELATED",
+          "status": "pass",
+          "evidence": "trucktrailer.io / www.trucktrailer.io attached. Prod deploy READY 2026-05-23."
+        },
+        {
+          "item": "fleetinspect — UNRELATED",
+          "status": "pass",
+          "evidence": "Vite app, vercel.app domains only. Prod deploy READY 2026-05-03."
+        },
+        {
+          "item": "rankradar — UNRELATED",
+          "status": "pass",
+          "evidence": "Next.js, vercel.app domains only. Prod deploy READY 2026-05-03."
+        },
+        {
+          "item": "vetclaimvault — UNRELATED",
+          "status": "pass",
+          "evidence": "vercel.app domains only. Prod deploy READY 2026-04-25."
+        },
+        {
+          "item": "openhousekit — UNRELATED",
+          "status": "pass",
+          "evidence": "vercel.app domains only. Prod deploy READY 2026-04-25."
+        },
+        {
+          "item": "notaryedge — UNRELATED",
+          "status": "pass",
+          "evidence": "vercel.app domains only. Prod deploy READY 2026-04-25."
+        },
+        {
+          "item": "slay-swimwear — UNRELATED",
+          "status": "pass",
+          "evidence": "vercel.app domains only. Prod deploy READY 2026-04-21."
+        },
+        {
+          "item": "torque — UNRELATED",
+          "status": "pass",
+          "evidence": "vercel.app domains only. Prod deploy READY 2026-04-23."
+        },
+        {
+          "item": "shopbid-web — UNRELATED",
+          "status": "pass",
+          "evidence": "vercel.app domains only. Prod deploy READY 2026-04-17."
+        },
+        {
+          "item": "shopbid — UNRELATED",
+          "status": "pass",
+          "evidence": "vercel.app domains only. Prod deploy READY 2026-04-16. Duplicate pair with shopbid-web but outside RoadService scope."
+        },
+        {
+          "item": "alberts-road-service — UNRELATED",
+          "status": "pass",
+          "evidence": "Astro site for the Albert's Road Service towing business (company site, not the RoadService.app product); vercel.app domains only. Prod deploy READY 2026-04-10."
+        },
+        {
+          "item": "truckmedic-api — UNRELATED",
+          "status": "pass",
+          "evidence": "TruckMedic suite; vercel.app domains only. Prod deploy READY 2026-03-31."
+        },
+        {
+          "item": "server — UNRELATED",
+          "status": "warn",
+          "evidence": "NestJS, TruckMedic-era; only prod deploy ERROR 2026-03-30; vercel.app domains only. Generic bare name — accidental-deploy risk (flagged above)."
+        },
+        {
+          "item": "truckmedic-fleet-portal — UNRELATED",
+          "status": "pass",
+          "evidence": "TruckMedic suite; vercel.app domains only. Prod deploy READY 2026-03-31."
+        },
+        {
+          "item": "admin — UNRELATED",
+          "status": "warn",
+          "evidence": "Next.js, TruckMedic-era; only prod deploy ERROR 2026-03-30; vercel.app domains only. Generic bare name — accidental-deploy risk (flagged above)."
+        },
+        {
+          "item": "truckmedic-fleet — UNRELATED",
+          "status": "pass",
+          "evidence": "TruckMedic suite; latest prod deploy ERROR 2026-03-30; vercel.app domain only. Duplicate pair with truckmedic-fleet-portal, outside RoadService scope."
+        },
+        {
+          "item": "truckmedic-admin — UNRELATED",
+          "status": "pass",
+          "evidence": "TruckMedic suite; holds admin.truckmedic.app (not roadservice.app family). Prod deploy READY 2026-03-31."
+        }
+      ]
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Audit"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "base44-scope-verify",
+      "phaseIndex": 1,
+      "phaseTitle": "Audit",
+      "agentId": "af38db2bff8193e43",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1787066681749,
+      "queuedAt": 1787066681722,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Scope-correction audit of Base44 app 6a8076afba92840995f8e8…",
+      "promptPreview": "You are auditing Base44 app 6a8076afba92840995f8e8ec (\"Truck Road Service\" — the RoadService launch app, Business Hub at business.roadservice.app). Use ToolSearch with query \"select:mcp__Base44__grep,mcp__Base44__read_file,mcp__Base44__list_directory,mcp__Base44__list_entity_schemas\" to load tools, then verify EACH claim below against the actual code. This is a verification audit of a scope-correc…",
+      "lastProgressAt": 1787066885200,
+      "tokens": 107312,
+      "toolCalls": 13,
+      "durationMs": 203429,
+      "resultPreview": "{\"summary\":\"Scope-correction audit of Base44 app 6a8076afba92840995f8e8ec verified 11 of 12 claims pass with concrete evidence; claim 10 is a warn because package.json has no test framework but does contain two \\\"test:*\\\"-named node verification scripts. Routes, nav, footers, onboarding, legal pages, and the public vendor profile are clean of repair/fleet/dispatch functionality; all five retired b…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "apex-live-audit",
+      "phaseIndex": 1,
+      "phaseTitle": "Audit",
+      "agentId": "aaee33bcf5efed9d0",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1787066681769,
+      "queuedAt": 1787066681722,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Production apex of roadservice.app is confirmed NOT cleaned…",
+      "promptPreview": "Audit the LIVE production apex marketing zone of https://roadservice.app for coordinated-roadside/dispatch marketing. Direct fetch is egress-blocked; use ToolSearch \"select:mcp__Exa__web_fetch_exa\" and fetch pages via that tool (batch URLs, maxCharacters 3000; raise to 6000 only where needed). Context: the business pivoted to a pure directory — no breakdown requests, no mechanic bids, no ETA/price…",
+      "lastProgressAt": 1787066809454,
+      "tokens": 60581,
+      "toolCalls": 14,
+      "durationMs": 127682,
+      "resultPreview": "{\"summary\":\"Production apex of roadservice.app is confirmed NOT cleaned up: 11 of 12 audited marketing pages still actively sell the coordinated-roadside/dispatch model (breakdown request intake, mechanic bids, ETA + all-in price approval before assignment/dispatch, RoadService job fee = difference between customer-approved total and accepted bid, RoadService-managed payment/escrow, on-site collec…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "directory-live-audit",
+      "phaseIndex": 1,
+      "phaseTitle": "Audit",
+      "agentId": "ad1544a079e51cbc6",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1787066809463,
+      "queuedAt": 1787066681722,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Audited the live production directory zone of roadservice.a…",
+      "promptPreview": "Audit the LIVE production DIRECTORY ZONE of https://roadservice.app for coordinated-roadside/dispatch language. Direct fetch is egress-blocked; use ToolSearch \"select:mcp__Exa__web_fetch_exa\" and fetch via that tool (batch URLs, maxCharacters 3000-5000). Context: the public directory (~3,800 SEO pages: /directory, /locations/*, /shop/*, service pages, city pages, guides, cost guides) must become a…",
+      "lastProgressAt": 1787067154809,
+      "tokens": 120518,
+      "toolCalls": 28,
+      "durationMs": 345345,
+      "resultPreview": "{\"summary\":\"Audited the live production directory zone of roadservice.app via sitemap discovery (sitemap.xml -> pages-sitemap.xml + directory-sitemap.xml) and per-template sampling of 20+ URLs. VERDICT: the directory zone is NOT a pure directory — nearly every template family carries coordinated-roadside/dispatch language, and all three known production phrases were found verbatim on live pages. T…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "hosts-audit",
+      "phaseIndex": 1,
+      "phaseTitle": "Audit",
+      "agentId": "acae18ebd72757fc6",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1787066885208,
+      "queuedAt": 1787066681722,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Audit result: the \"one canonical public domain\" claim does …",
+      "promptPreview": "Audit host/domain hygiene for the RoadService launch. Direct fetch of these domains is egress-blocked in this environment; use ToolSearch \"select:mcp__Exa__web_fetch_exa,mcp__Vercel__web_fetch_vercel_url,mcp__Vercel__list_teams\" and try Exa first for each URL; for *.vercel.app or Vercel-hosted hosts that fail, try the Vercel fetch tool.\n\nCheck each host and report what it currently serves publicly…",
+      "lastProgressAt": 1787066958458,
+      "tokens": 45320,
+      "toolCalls": 7,
+      "durationMs": 73250,
+      "resultPreview": "{\"summary\":\"Audit result: the \\\"one canonical public domain\\\" claim does NOT hold cleanly. The apex/www directory is fine and directory.roadservice.app appears to serve a full duplicate copy of the directory homepage on its own hostname (real SEO duplicate-content risk unless it 301s or canonicals to the apex — Exa cannot confirm headers). app.roadservice.app is publicly reachable and actively adv…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "vercel-cohort-audit",
+      "phaseIndex": 1,
+      "phaseTitle": "Audit",
+      "agentId": "a6f3eceb78cc1308c",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1787066958466,
+      "queuedAt": 1787066681722,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Audited all 36 Vercel projects in the only team on the acco…",
+      "promptPreview": "Audit Vercel project sprawl for the RoadService launch. Use ToolSearch \"select:mcp__Vercel__list_teams,mcp__Vercel__list_projects,mcp__Vercel__get_project\" to load tools. Team is likely \"albertsroadservices-projects\" (team_2BstI1BjhxBYRswaG6TtOLT2) but confirm via list_teams and check ALL teams.\n\nList every project. For each report: name, framework, attached production domains (call get_project wh…",
+      "lastProgressAt": 1787067121096,
+      "tokens": 64360,
+      "toolCalls": 40,
+      "durationMs": 162629,
+      "resultPreview": "{\"summary\":\"Audited all 36 Vercel projects in the only team on the account, \\\"albertsroadservice's projects\\\" (team_2BstI1BjhxBYRswaG6TtOLT2, slug albertsroadservices-projects) — list_teams confirms no other teams exist. Release cohort confirmed as rigdispatch-marketing and rigdispatch-directory, both Next.js. CRITICAL FINDING 1: NO roadservice.app-family domain is attached to ANY Vercel project f…"
+    }
+  ],
+  "totalTokens": 398091,
+  "totalToolCalls": 102
+}

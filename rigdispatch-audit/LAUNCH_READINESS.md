@@ -1,5 +1,11 @@
 # RigDispatch / RoadService.App — Launch Readiness (T-60)
 
+> **⛔ SUPERSEDED 2026-08-18 by the Master Launch Harness (see
+> `LAUNCH_HARNESS_EXECUTION_2026-08-18.md`).** This document declares the *dispatch marketplace*
+> launch-ready. Coordinated roadside service (requests, bids, dispatch, work orders, managed
+> payments) has since been **removed from the release scope**. Do not act on the "GO" below or on
+> its recommendations; the launch cohort is now the public directory + Business Hub only.
+
 ## GO — current production is launch-ready
 - 5 apps deployed & production READY (driver, mechanic, dispatcher, api, directory).
 - Directory live: HTTP 200, now **10 real listings** (9 external TX + Alberts), 0 demo rows public.

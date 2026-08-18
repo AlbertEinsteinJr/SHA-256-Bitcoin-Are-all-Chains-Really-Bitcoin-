@@ -1,6 +1,8 @@
 # Support phone change — (855) 744-2223 → (561) 726-3111
 
-**Status:** code change required (not applied from the audit session — needs the `rigdispatch` repo).
+**Status:** ✅ LIVE IN PRODUCTION as of 2026-08-18 — (561) 726-3111 observed on roadservice.app
+/how-it-works and /terms and on app.roadservice.app (see `LAUNCH_HARNESS_EXECUTION_2026-08-18.md`
+§3.4). The steps below are kept for reference; verify call routing/forwarding is in place.
 **Confirmed:** the support number is NOT in the database. A full scan of every text column in the
 Supabase `public` schema found no `+18557442223` in any rigdispatch_*/dir_* table — it is a hardcoded
 app constant (`SUPPORT_PHONE`) plus header/footer + marketing `tel:` links in the `rigdispatch` repo.

@@ -1,5 +1,10 @@
 # RigDispatch / RoadService.App — Go-Live Runbook (remaining items)
 
+> **⛔ SUPERSEDED 2026-08-18 by the Master Launch Harness (see
+> `LAUNCH_HARNESS_EXECUTION_2026-08-18.md`).** Steps 3–4 below deploy the dispatch apps and enable
+> the work-order flow — both are now **out of the release scope**. Do not execute them. Steps 1–2
+> (Supabase advisories) remain valid housekeeping.
+
 Everything database-side is DONE and verified (see AUDIT_AND_REMEDIATION.md). The items below could not
 be executed from the audit session because they require tools/scope that session did not have
 (the `rigdispatch` repo, Vercel env editing, Stripe, Supabase Auth config, PostGIS table ownership).

@@ -1,5 +1,10 @@
 # Hand-off brief — finish RigDispatch go-live via Desktop Commander / Claude-in-Chrome
 
+> **⛔ SUPERSEDED 2026-08-18 by the Master Launch Harness (see
+> `LAUNCH_HARNESS_EXECUTION_2026-08-18.md`).** Block A below deploys the dispatch apps and enables
+> the work-order flow — **out of the release scope now**; do not paste it anywhere. The current
+> hand-off runbook is §6 of the execution record.
+
 The database hardening is already applied & verified in production (see AUDIT_AND_REMEDIATION.md / PR #3).
 The steps below are the *remaining* items. They need your real logins, so run them in a Claude surface that
 has them: **Desktop Commander** (shell + your `gh`/`vercel`/`supabase` CLIs) and/or **Claude-in-Chrome**
